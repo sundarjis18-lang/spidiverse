@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #080B18;
+    --spider-red: #F52245;
+    --electric-blue: #087CFF;
+    --neon-purple: #8B35FF;
+    --dark-navy: #10182B;
+    --neon-cyan: #00F0FF;
+    --neon-magenta: #FF1A75;
+  }
+
+  body {
+    background-color: #080B18;
+    color: #F5F7FF;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Orbitron', 'Rajdhani', sans-serif;
+    letter-spacing: 0.05em;
+  }
+
+  code, pre, .font-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #080B18;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+  border: 1px solid rgba(8, 124, 255, 0.25);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F52245;
+}
+
+/* Glow Effects */
+.glow-red {
+  box-shadow: 0 0 20px rgba(245, 34, 69, 0.4), inset 0 0 15px rgba(245, 34, 69, 0.1);
+}
+.glow-blue {
+  box-shadow: 0 0 20px rgba(8, 124, 255, 0.4), inset 0 0 15px rgba(8, 124, 255, 0.1);
+}
+.glow-purple {
+  box-shadow: 0 0 20px rgba(139, 53, 255, 0.4), inset 0 0 15px rgba(139, 53, 255, 0.1);
+}
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.1);
+}
+
+.text-glow-red {
+  text-shadow: 0 0 12px rgba(245, 34, 69, 0.8), 0 0 24px rgba(245, 34, 69, 0.4);
+}
+.text-glow-blue {
+  text-shadow: 0 0 12px rgba(8, 124, 255, 0.8), 0 0 24px rgba(8, 124, 255, 0.4);
+}
+.text-glow-purple {
+  text-shadow: 0 0 12px rgba(139, 53, 255, 0.8);
+}
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+}
+
+/* Glassmorphism panels */
+.glass-panel {
+  background: rgba(16, 24, 43, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(8, 124, 255, 0.22);
+}
+
+.glass-panel-red {
+  background: rgba(16, 24, 43, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(245, 34, 69, 0.35);
+}
+
+.glass-panel-dark {
+  background: rgba(8, 11, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Cyber City Grid and Web Mesh */
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(8, 124, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 124, 255, 0.06) 1px, transparent 1px);
+}
+
+.cyber-grid-dense {
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(245, 34, 69, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 124, 255, 0.07) 1px, transparent 1px);
+}
+
+/* Animated Spider Web Pulse */
+@keyframes webPulse {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.28;
+    transform: scale(1.02);
+  }
+}
+
+.animate-web-pulse {
+  animation: webPulse 6s ease-in-out infinite;
+}
+
+@keyframes glitchFlicker {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-1px, -1px) }
+  60% { transform: translate(2px, 1px) }
+  80% { transform: translate(1px, -2px) }
+  100% { transform: translate(0) }
+}
+
+.animate-glitch {
+  animation: glitchFlicker 0.35s ease infinite alternate;
+}
+
+@keyframes bossAura {
+  0% {
+    box-shadow: 0 0 25px rgba(245, 34, 69, 0.6), 0 0 50px rgba(139, 53, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(245, 34, 69, 0.9), 0 0 80px rgba(245, 34, 69, 0.5), inset 0 0 20px rgba(245, 34, 69, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(245, 34, 69, 0.6), 0 0 50px rgba(139, 53, 255, 0.4);
+  }
+}
+
+.animate-boss-aura {
+  animation: bossAura 2.2s infinite ease-in-out;
+}
