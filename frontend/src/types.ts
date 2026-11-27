@@ -61,6 +61,9 @@ export interface SubmissionResponse {
   general_error?: string | null;
   stdout?: string;
   points_awarded: number;
+  base_points?: number;
+  hints_used?: number;
+  hint_penalty?: number;
   next_unlocked_challenge?: number | null;
   is_all_cleared?: boolean;
 }

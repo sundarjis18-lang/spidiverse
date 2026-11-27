@@ -217,16 +217,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Quick Demo Deploy Roster */}
-            <div className="mb-6 p-3.5 rounded-2xl bg-[#080B18]/80 border border-slate-800">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[11px] font-mono font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-purple-400" />
-                  Admin Access
-                </span>
-                <span className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider">Password Protected</span>
-              </div>
 
-              {/* ADMIN */}
+
+            {/* ADMIN ACCESS */}
+            <div className="mb-4">
               <button
                 type="button"
                 onClick={() => {
@@ -236,20 +230,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   setAdminModalUser('');
                   setAdminModalPass('');
                 }}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-800/80 hover:bg-[#8B35FF]/20 hover:border-[#8B35FF]/60 border border-slate-700/60 text-xs text-slate-200 transition-all flex items-center justify-between group shadow-sm hover:shadow-[0_0_15px_rgba(139,53,255,0.3)]"
+                className="w-full px-4 py-2.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 hover:border-purple-500/60 border border-purple-500/30 text-xs text-purple-200 transition-all flex items-center justify-between group shadow-sm"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#8B35FF] shadow-[0_0_8px_rgba(139,53,255,0.8)]"></span>
-                  <div className="text-left">
-                    <span className="font-heading font-black text-white group-hover:text-purple-300 text-sm uppercase tracking-wider flex items-center gap-1.5">
-                      Admin
-                      <Lock className="w-3.5 h-3.5 text-purple-400" />
-                    </span>
-                    <span className="text-[10px] text-purple-300 font-mono block">Requires Password Verification</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <KeyRound className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform" />
+                  <span className="font-mono font-bold">Overseer / Admin Clearance</span>
                 </div>
-                <span className="px-3 py-1 rounded-xl bg-purple-950/60 border border-purple-500/40 text-[10px] font-mono font-bold text-purple-300 group-hover:text-white uppercase tracking-wider">
-                  Login &rarr;
+                <span className="text-[10px] font-mono text-purple-400 bg-purple-900/60 px-2 py-0.5 rounded border border-purple-500/30">
+                  Authenticate →
                 </span>
               </button>
             </div>
@@ -264,109 +252,109 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5">
-              {/* Student Name */}
-              <div>
-                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                  Student Name <span className="text-slate-500 font-normal">(e.g. Peter Parker / spiderman)</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <UserIcon className="w-4 h-4 text-[#087CFF]" />
-                  </div>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Peter Parker or spiderman"
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Student Register Number */}
-              <div>
-                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                  Student Register Number <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Hash className="w-4 h-4 text-[#087CFF]" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={regNumber}
-                    onChange={(e) => setRegNumber(e.target.value)}
-                    placeholder="e.g. RA2111003010142 or spiderman"
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* College Email ID */}
-              <div>
-                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                  College Email ID <span className="text-slate-500 font-normal">(Optional)</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-4 h-4 text-[#087CFF]" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@spiderverse.edu"
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Security Passcode / Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase">
-                    Security Passcode / Password <span className="text-rose-400">*</span>
+                {/* Student Name */}
+                <div>
+                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                    Student Name <span className="text-slate-500 font-normal">(e.g. Peter Parker / spiderman)</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgot(true)}
-                    className="text-[11px] text-[#087CFF] hover:text-[#00F0FF] transition-colors font-mono"
-                  >
-                    Forgot?
-                  </button>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4 text-[#087CFF]" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <UserIcon className="w-4 h-4 text-[#087CFF]" />
+                    </div>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Peter Parker or spiderman"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                    />
                   </div>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                  />
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-4 py-3 px-6 rounded-xl font-heading font-bold text-xs tracking-wider uppercase text-white bg-gradient-to-r from-[#F52245] via-[#8B35FF] to-[#087CFF] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(245,34,69,0.4)] flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    <span>ACCESS MISSION CONTROL</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
+                {/* Student Register Number */}
+                <div>
+                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                    Student Register Number <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Hash className="w-4 h-4 text-[#087CFF]" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regNumber}
+                      onChange={(e) => setRegNumber(e.target.value)}
+                      placeholder="e.g. RA2111003010142 or spiderman"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* College Email ID */}
+                <div>
+                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                    College Email ID <span className="text-slate-500 font-normal">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4 text-[#087CFF]" />
+                    </div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="student@spiderverse.edu"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Security Passcode / Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase">
+                      Security Passcode / Password <span className="text-rose-400">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgot(true)}
+                      className="text-[11px] text-[#087CFF] hover:text-[#00F0FF] transition-colors font-mono"
+                    >
+                      Forgot?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4 text-[#087CFF]" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-4 py-3 px-6 rounded-xl font-heading font-bold text-xs tracking-wider uppercase text-white bg-gradient-to-r from-[#F52245] via-[#8B35FF] to-[#087CFF] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(245,34,69,0.4)] flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      <span>ACCESS MISSION CONTROL</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
 
           </div>
         </div>
@@ -374,154 +362,158 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       </div>
 
       {/* Forgot Password Modal */}
-      {showForgot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="glass-panel max-w-md w-full rounded-3xl p-6 border border-[#087CFF]/50 shadow-[0_0_40px_rgba(8,124,255,0.4)]">
-            <div className="flex items-center gap-2 mb-3 text-[#00F0FF]">
-              <KeyRound className="w-5 h-5" />
-              <h3 className="font-heading text-lg font-bold text-white">Reset Security Key</h3>
-            </div>
-            <p className="text-xs text-slate-300 font-mono mb-4">
-              Enter your college email address. A one-time neural bypass token will be dispatched.
-            </p>
-
-            {forgotSuccess ? (
-              <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-300 text-xs font-mono flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>Bypass link dispatched! Check your college email.</span>
+      {
+        showForgot && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <div className="glass-panel max-w-md w-full rounded-3xl p-6 border border-[#087CFF]/50 shadow-[0_0_40px_rgba(8,124,255,0.4)]">
+              <div className="flex items-center gap-2 mb-3 text-[#00F0FF]">
+                <KeyRound className="w-5 h-5" />
+                <h3 className="font-heading text-lg font-bold text-white">Reset Security Key</h3>
               </div>
-            ) : (
-              <form onSubmit={handleForgotPassword} className="space-y-3 font-mono text-xs">
-                <div>
-                  <input
-                    type="email"
-                    required
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="student@college.edu"
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B18] border border-slate-700 text-white outline-none"
-                  />
+              <p className="text-xs text-slate-300 font-mono mb-4">
+                Enter your college email address. A one-time neural bypass token will be dispatched.
+              </p>
+
+              {forgotSuccess ? (
+                <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-300 text-xs font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Bypass link dispatched! Check your college email.</span>
                 </div>
-                <div className="flex items-center justify-end gap-2 pt-2">
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-3 font-mono text-xs">
+                  <div>
+                    <input
+                      type="email"
+                      required
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="student@college.edu"
+                      className="w-full px-3 py-2 rounded-xl bg-[#080B18] border border-slate-700 text-white outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgot(false)}
+                      className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 rounded-lg font-heading font-bold uppercase bg-[#087CFF] text-white"
+                    >
+                      Send Token
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )
+      }
+
+      {/* Admin Credentials Modal */}
+      {
+        showAdminModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+            <div className="glass-panel max-w-md w-full rounded-3xl p-6 sm:p-7 border-2 border-purple-500/60 shadow-[0_0_60px_rgba(139,53,255,0.45)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-36 h-36 bg-purple-600/15 rounded-full blur-2xl pointer-events-none"></div>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-purple-950/80 border border-purple-500 flex items-center justify-center shadow-[0_0_15px_rgba(139,53,255,0.5)]">
+                  <Shield className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-purple-400 tracking-widest uppercase font-bold block">
+                    RESTRICTED ACCESS
+                  </span>
+                  <h3 className="font-heading text-xl font-black text-white">
+                    Admin Verification
+                  </h3>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 font-mono mb-4 leading-relaxed">
+                Please enter your administrator username and password. Credentials are strictly case-sensitive.
+              </p>
+
+              {adminModalError && (
+                <div className="mb-4 p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-200 text-xs font-mono flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{adminModalError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAdminModalSubmit} className="space-y-3.5 font-mono text-xs">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1 uppercase">
+                    Username <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <UserIcon className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      value={adminModalUser}
+                      onChange={(e) => setAdminModalUser(e.target.value)}
+                      placeholder="Enter admin username"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#080B18] border border-purple-500/40 focus:border-purple-400 text-white placeholder-slate-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1 uppercase">
+                    Password <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      value={adminModalPass}
+                      onChange={(e) => setAdminModalPass(e.target.value)}
+                      placeholder="Enter admin password"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#080B18] border border-purple-500/40 focus:border-purple-400 text-white placeholder-slate-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3">
                   <button
                     type="button"
-                    onClick={() => setShowForgot(false)}
-                    className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white"
+                    onClick={() => setShowAdminModal(false)}
+                    className="px-4 py-2 rounded-xl text-slate-400 hover:text-white font-mono text-xs transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 rounded-lg font-heading font-bold uppercase bg-[#087CFF] text-white"
+                    disabled={adminModalLoading}
+                    className="px-5 py-2.5 rounded-xl font-heading font-bold uppercase text-xs text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-[#087CFF] hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(139,53,255,0.4)] flex items-center gap-1.5"
                   >
-                    Send Token
+                    {adminModalLoading ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Authenticate</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Admin Credentials Modal */}
-      {showAdminModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="glass-panel max-w-md w-full rounded-3xl p-6 sm:p-7 border-2 border-purple-500/60 shadow-[0_0_60px_rgba(139,53,255,0.45)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-36 h-36 bg-purple-600/15 rounded-full blur-2xl pointer-events-none"></div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-2xl bg-purple-950/80 border border-purple-500 flex items-center justify-center shadow-[0_0_15px_rgba(139,53,255,0.5)]">
-                <Shield className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono text-purple-400 tracking-widest uppercase font-bold block">
-                  RESTRICTED ACCESS
-                </span>
-                <h3 className="font-heading text-xl font-black text-white">
-                  Admin Verification
-                </h3>
-              </div>
             </div>
-
-            <p className="text-xs text-slate-300 font-mono mb-4 leading-relaxed">
-              Please enter your administrator username and password. Credentials are strictly case-sensitive.
-            </p>
-
-            {adminModalError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-200 text-xs font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>{adminModalError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleAdminModalSubmit} className="space-y-3.5 font-mono text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 uppercase">
-                  Username <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <UserIcon className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    value={adminModalUser}
-                    onChange={(e) => setAdminModalUser(e.target.value)}
-                    placeholder="Enter admin username"
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#080B18] border border-purple-500/40 focus:border-purple-400 text-white placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 uppercase">
-                  Password <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={adminModalPass}
-                    onChange={(e) => setAdminModalPass(e.target.value)}
-                    placeholder="Enter admin password"
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#080B18] border border-purple-500/40 focus:border-purple-400 text-white placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAdminModal(false)}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white font-mono text-xs transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={adminModalLoading}
-                  className="px-5 py-2.5 rounded-xl font-heading font-bold uppercase text-xs text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-[#087CFF] hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(139,53,255,0.4)] flex items-center gap-1.5"
-                >
-                  {adminModalLoading ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>Authenticate</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )
+      }
 
-    </div>
+    </div >
   );
 };

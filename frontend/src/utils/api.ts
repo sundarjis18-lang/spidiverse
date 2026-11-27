@@ -270,12 +270,12 @@ export const api = {
   },
 
   // Submit challenge solution
-  async submitSolution(userId: number, challengeId: number, code: string): Promise<SubmissionResponse> {
+  async submitSolution(userId: number, challengeId: number, code: string, hintsUsed: number = 0): Promise<SubmissionResponse> {
     try {
       const res = await fetch(`${BASE_URL}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, challenge_id: challengeId, code })
+        body: JSON.stringify({ user_id: userId, challenge_id: challengeId, code, hints_used: hintsUsed })
       });
       if (res.ok) {
         const data = await res.json();
@@ -314,7 +314,10 @@ export const api = {
     }));
 
     const all_passed = hasFix;
-    const points_awarded = all_passed ? (ch?.points || 100) : 0;
+    const basePoints = ch?.points || 100;
+    const hintPenalty = Math.max(10, Math.round(basePoints * 0.10));
+    const totalReduction = hintsUsed * hintPenalty;
+    const points_awarded = all_passed ? Math.max(Math.round(basePoints * 0.5), basePoints - totalReduction) : 0;
 
     if (all_passed) {
       const user = getStoredUser();
@@ -331,6 +334,9 @@ export const api = {
       total_count: results.length,
       results,
       points_awarded,
+      base_points: basePoints,
+      hints_used: hintsUsed,
+      hint_penalty: totalReduction,
       next_unlocked_challenge: all_passed && challengeId < 10 ? challengeId + 1 : null,
       is_all_cleared: all_passed && challengeId === 10
     };

@@ -55,6 +55,7 @@ class SubmitCodeRequest(BaseModel):
     user_id: int
     challenge_id: int
     code: str
+    hints_used: Optional[int] = 0
 
 class ChallengeUpdate(BaseModel):
     title: Optional[str] = None
@@ -486,26 +487,34 @@ def submit_solution(req: SubmitCodeRequest):
     total_count = test_outcome.get("total_count", len(test_cases))
     
     now_str = datetime.utcnow().isoformat()
+    hints_count = max(0, req.hints_used or 0)
     
-    # Record submission
+    # Record submission with hints_used tracked
     cursor.execute("""
-        INSERT INTO submissions (user_id, challenge_id, code, passed, passed_count, total_count, test_results, runtime_ms, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO submissions (user_id, challenge_id, code, passed, passed_count, total_count, test_results, runtime_ms, hints_used, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         req.user_id, req.challenge_id, req.code, 1 if all_passed else 0,
         passed_count, total_count, json.dumps(test_outcome.get("results", [])),
-        test_outcome.get("runtime_ms", 0.0), now_str
+        test_outcome.get("runtime_ms", 0.0), hints_count, now_str
     ))
     
     new_unlocked = None
     points_awarded = 0
+    total_reduction = 0
     
     if all_passed:
         completed_list = json.loads(user["completed_challenges"])
         if req.challenge_id not in completed_list:
             completed_list.append(req.challenge_id)
-            points_awarded = points
-            new_total_points = user["points"] + points
+            
+            # Point reduction for hints: 10% penalty per revealed hint, min 50% points floor
+            hint_penalty = max(10, int(round(points * 0.10)))
+            total_reduction = hints_count * hint_penalty
+            min_points = int(points * 0.50)
+            points_awarded = max(min_points, points - total_reduction)
+            
+            new_total_points = user["points"] + points_awarded
             cursor.execute("""
                 UPDATE users SET points = ?, completed_challenges = ? WHERE id = ?
             """, (new_total_points, json.dumps(completed_list), req.user_id))
@@ -524,6 +533,9 @@ def submit_solution(req: SubmitCodeRequest):
         "general_error": test_outcome.get("general_error"),
         "stdout": test_outcome.get("stdout", ""),
         "points_awarded": points_awarded,
+        "base_points": points,
+        "hints_used": hints_count,
+        "hint_penalty": total_reduction,
         "next_unlocked_challenge": new_unlocked,
         "is_all_cleared": (req.challenge_id == 10 and all_passed)
     }

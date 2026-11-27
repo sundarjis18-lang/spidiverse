@@ -78,9 +78,15 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'failed'>('idle');
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [awardedPoints, setAwardedPoints] = useState<number | null>(null);
 
-  // Hints state
+  // Hints state & Point Reduction calculations
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
+  const penaltyPerHint = Math.max(10, Math.round(challenge.points * 0.10));
+  const hintsUsed = revealedHints.length;
+  const currentPenalty = hintsUsed * penaltyPerHint;
+  const minPoints = Math.round(challenge.points * 0.50);
+  const currentPotentialReward = Math.max(minPoints, challenge.points - currentPenalty);
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState(1200);
@@ -92,6 +98,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
     setGeneralError(null);
     setRevealedHints([]);
     setShowBadgeModal(false);
+    setAwardedPoints(null);
     setTimeLeft(1200);
   }, [challenge.id, starterCode]);
 
@@ -111,7 +118,11 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
   const handleRevealHint = (index: number) => {
     sounds.playWebShoot();
     if (!revealedHints.includes(index)) {
-      setRevealedHints(prev => [...prev, index]);
+      const nextReward = Math.max(minPoints, currentPotentialReward - penaltyPerHint);
+      const confirmMsg = `TACTICAL DECRYPTION WARNING:\nDecrypting Hint #${index + 1} will deduct -${penaltyPerHint} points from this quest's reward (${currentPotentialReward} -> ${nextReward} pts).\n\nProceed with decryption?`;
+      if (window.confirm(confirmMsg)) {
+        setRevealedHints(prev => [...prev, index]);
+      }
     }
   };
 
@@ -166,12 +177,14 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
     setGeneralError(null);
 
     try {
-      const res: SubmissionResponse = await api.submitSolution(user.id, challenge.id, code);
+      const res: SubmissionResponse = await api.submitSolution(user.id, challenge.id, code, revealedHints.length);
       setTestResults(res.results);
 
       if (res.all_passed) {
         sounds.playVictory();
         setSubmissionStatus('success');
+        const finalAwarded = res.points_awarded ?? currentPotentialReward;
+        setAwardedPoints(finalAwarded);
         setShowBadgeModal(true);
 
         confetti({
@@ -181,7 +194,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
           colors: ['#F52245', '#087CFF', '#8B35FF', '#00F0FF', '#10B981', '#FFD700']
         });
 
-        onChallengeCompleted(challenge.id, challenge.points);
+        onChallengeCompleted(challenge.id, finalAwarded);
       } else {
         sounds.playError();
         setSubmissionStatus('failed');
@@ -260,9 +273,18 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
         {/* Right Info: Points & Countdown Timer */}
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold flex items-center gap-1.5">
-            <Flame className="w-4 h-4 fill-amber-400" />
-            <span>+{challenge.points} Points</span>
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${
+            hintsUsed > 0 
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300' 
+              : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+          }`}>
+            <Flame className="w-4 h-4 fill-current" />
+            <span>+{currentPotentialReward} Points</span>
+            {hintsUsed > 0 && (
+              <span className="text-[10px] text-rose-400/80 font-normal line-through ml-0.5">
+                {challenge.points}
+              </span>
+            )}
           </div>
 
           <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold flex items-center gap-1.5">
@@ -345,10 +367,23 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
             {/* Tactical Spider-Sense Hints */}
             <div>
-              <h4 className="text-xs font-heading font-bold uppercase tracking-wider text-purple-400 mb-2 flex items-center gap-1.5">
-                <Lightbulb className="w-4 h-4 text-purple-400" />
-                Spider-Sense Hints ({revealedHints.length}/{hints.length})
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-heading font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                  <Lightbulb className="w-4 h-4 text-purple-400" />
+                  Spider-Sense Hints ({revealedHints.length}/{hints.length})
+                </h4>
+                <span className="text-[10px] font-mono font-bold text-rose-400 bg-rose-950/40 border border-rose-500/30 px-2 py-0.5 rounded">
+                  -{penaltyPerHint} pts / hint
+                </span>
+              </div>
+
+              {hintsUsed > 0 && (
+                <div className="mb-2 p-2 rounded-lg bg-amber-950/30 border border-amber-500/30 text-[11px] font-mono text-amber-300 flex items-center justify-between">
+                  <span>Penalty Incurred:</span>
+                  <span className="font-bold text-rose-400">-{currentPenalty} pts (Net: {currentPotentialReward} pts)</span>
+                </div>
+              )}
+
               <div className="space-y-2">
                 {hints.length === 0 ? (
                   <div className="p-3 text-xs font-mono text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
@@ -361,7 +396,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                       <div key={idx} className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
                         {isRevealed ? (
                           <div className="p-3 text-xs font-mono text-purple-200 bg-purple-950/20 border-l-2 border-purple-500">
-                            <strong className="text-purple-400 block mb-1">Decrypted Hint #{idx + 1}:</strong>
+                            <div className="flex items-center justify-between mb-1">
+                              <strong className="text-purple-400">Decrypted Hint #{idx + 1}:</strong>
+                              <span className="text-[10px] text-rose-400 font-bold">-{penaltyPerHint} pts</span>
+                            </div>
                             {hint}
                           </div>
                         ) : (
@@ -371,8 +409,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                             className="w-full p-2.5 text-left text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center justify-between transition-colors"
                           >
                             <span>Access Hint #{idx + 1}</span>
-                            <span className="text-[10px] uppercase font-bold text-purple-400 bg-purple-900/30 px-2 py-0.5 rounded border border-purple-500/30">
-                              Decrypt
+                            <span className="text-[10px] uppercase font-bold text-rose-300 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">
+                              Decrypt (-{penaltyPerHint} pts)
                             </span>
                           </button>
                         )}
@@ -514,7 +552,12 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
               {submissionStatus === 'success' && (
                 <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold animate-in fade-in">
                   <Check className="w-4 h-4" />
-                  <span>CORRUPTION PURGED! +{challenge.points} PTS</span>
+                  <span>CORRUPTION PURGED! +{awardedPoints ?? currentPotentialReward} PTS</span>
+                  {hintsUsed > 0 && (
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      (-{currentPenalty} pts for {hintsUsed} hint{hintsUsed > 1 ? 's' : ''})
+                    </span>
+                  )}
                   {challenge.id < 10 && (
                     <button
                       onClick={() => onNextChallenge(challenge.id + 1)}
@@ -640,8 +683,15 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
               {QUEST_BADGES[challenge.id]?.description || 'Sector telemetry restored. This official completion badge has been awarded and equipped to your Spider-Code Dashboard!'}
             </p>
 
-            <div className="mt-3 inline-block px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold">
-              +{challenge.points} ARENA POINTS AWARDED
+            <div className="mt-3 flex flex-col items-center gap-1">
+              <div className="inline-block px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold">
+                +{awardedPoints ?? currentPotentialReward} ARENA POINTS AWARDED
+              </div>
+              {hintsUsed > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  (Base: {challenge.points} pts - {currentPenalty} pts for {hintsUsed} hint{hintsUsed > 1 ? 's' : ''})
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 pt-4 border-t border-slate-800">

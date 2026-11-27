@@ -50,10 +50,16 @@ def init_db():
         total_count INTEGER NOT NULL,
         test_results TEXT NOT NULL,
         runtime_ms REAL DEFAULT 0.0,
+        hints_used INTEGER DEFAULT 0,
         timestamp TEXT NOT NULL,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )
     """)
+    
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN hints_used INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
     
     # High concurrency indexes
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_role_points ON users(role, points DESC, time_spent_seconds ASC)")

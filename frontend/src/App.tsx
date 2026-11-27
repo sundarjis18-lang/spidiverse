@@ -73,7 +73,7 @@ export function App() {
             alert('SESSION TERMINATED: Your player account has been removed by Admin. Please log in or register again.');
             handleLogout();
           }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }, 4500);
     return () => clearInterval(timer);
@@ -206,8 +206,8 @@ export function App() {
             <AdminHeader
               activeSectionTitle={
                 adminSection === 'controls' ? 'Contest Controls' :
-                adminSection === 'problems' ? 'Problems Manager' :
-                adminSection === 'participants' ? 'Participants' : 'Live Leaderboard'
+                  adminSection === 'problems' ? 'Problems Manager' :
+                    adminSection === 'participants' ? 'Participants' : 'Live Leaderboard'
               }
               isUnlocked={globalUnlocked}
               onRefresh={loadChallenges}
@@ -240,7 +240,7 @@ export function App() {
         // DEDICATED PLAYER / STUDENT DASHBOARD (Esports Arena Layout)
         // =========================================================================
         <div className="relative z-10 flex flex-col w-full min-h-screen">
-          
+
           {/* Admin Preview Mode Floating Banner */}
           {user.role === 'admin' && previewPlayerMode && (
             <div className="bg-purple-950/95 border-b border-purple-500/50 px-6 py-2.5 flex items-center justify-between text-xs font-mono text-purple-200 z-50">
