@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Award,
   Download,
@@ -9,9 +9,17 @@ import {
   Sparkles,
   Layers,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Mail,
+  Send,
+  User as UserIcon,
+  GraduationCap,
+  X,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { User } from '../types';
+import { api } from '../utils/api';
 import { sounds } from '../utils/soundEffects';
 
 interface StudentCertificateViewProps {
@@ -21,6 +29,17 @@ interface StudentCertificateViewProps {
 export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ user }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Dynamic user-customizable details
+  const [studentName, setStudentName] = useState<string>(user.name || '');
+  const [department, setDepartment] = useState<string>(user.department || '');
+
+  // Email modal state
+  const [emailModalOpen, setEmailModalOpen] = useState<boolean>(false);
+  const [targetEmail, setTargetEmail] = useState<string>(user.email || '');
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [emailSuccessMsg, setEmailSuccessMsg] = useState<string | null>(null);
+  const [emailErrorMsg, setEmailErrorMsg] = useState<string | null>(null);
+
   const completedCount = user.completed_challenges?.length || 0;
   const isMasterClearer = completedCount >= 10;
   const certType = isMasterClearer ? 'Mastery' : 'Participation';
@@ -28,12 +47,10 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     ? 'CERTIFICATE OF QUANTUM MASTERY'
     : 'CERTIFICATE OF PARTICIPATION';
 
-  const certHash = `PYR-2026-${(user.reg_number || 'RA0000').toUpperCase()}-${Math.abs(user.id * 7919).toString(16).toUpperCase()}`;
+  const certHash = `PYR-2026-${(user.reg_number || 'RA0000').toUpperCase()}-${Math.abs((user.id || 1) * 7919).toString(16).toUpperCase()}`;
 
-  // Download High-Resolution PNG (1920x1080)
-  const handleDownloadPNG = () => {
-    sounds.playWebShoot();
-    const canvas = canvasRef.current || document.createElement('canvas');
+  // Shared drawing function for both Download and Email attachment
+  const drawCertificateToCanvas = (canvas: HTMLCanvasElement) => {
     canvas.width = 1920;
     canvas.height = 1080;
     const ctx = canvas.getContext('2d');
@@ -105,15 +122,17 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     ctx.fillStyle = '#94A3B8';
     ctx.fillText('THIS IS PROUDLY CONFERRED UPON', 960, 375);
 
-    // Recipient Name
+    // Recipient Name (uses customizable studentName)
+    const effectiveName = (studentName.trim() || user.name || 'Spider Cadet').toUpperCase();
     ctx.font = '900 64px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText((user.name || 'Spider Cadet').toUpperCase(), 960, 460);
+    ctx.fillText(effectiveName, 960, 460);
 
-    // Department & Reg Number
+    // Department & Reg Number (uses customizable department)
     ctx.font = 'bold 22px "Courier New", monospace';
     ctx.fillStyle = '#38BDF8';
-    const deptStr = user.department ? `DEPARTMENT OF ${user.department.toUpperCase()} • ` : '';
+    const effectiveDept = department.trim() || user.department || '';
+    const deptStr = effectiveDept ? `DEPARTMENT OF ${effectiveDept.toUpperCase()} • ` : '';
     ctx.fillText(`${deptStr}COLLEGE REGISTER NO: ${user.reg_number || 'RA0000'}`, 960, 510);
 
     // Citation
@@ -190,9 +209,16 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     ctx.font = '12px "Courier New", monospace';
     ctx.fillStyle = '#64748B';
     ctx.fillText(`AUTHENTICITY TOKEN: ${certHash} • VERIFY AT HTTPS://PYRANK.SPIDERVERSE.EDU/VERIFY`, 960, 1000);
+  };
 
-    // Trigger download
-    const cleanName = (user.name || 'cadet').replace(/[^a-zA-Z0-9]/g, '_');
+  // Download High-Resolution PNG (1920x1080)
+  const handleDownloadPNG = () => {
+    sounds.playWebShoot();
+    const canvas = canvasRef.current || document.createElement('canvas');
+    drawCertificateToCanvas(canvas);
+
+    const effectiveName = studentName.trim() || user.name || 'cadet';
+    const cleanName = effectiveName.replace(/[^a-zA-Z0-9]/g, '_');
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = `PyRank_${certType}_Certificate_${cleanName}.png`;
@@ -207,8 +233,54 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     window.print();
   };
 
+  // Dispatch certificate to email
+  const handleSendEmail = async () => {
+    if (!targetEmail || !targetEmail.includes('@') || !targetEmail.includes('.')) {
+      sounds.playError();
+      setEmailErrorMsg('Please enter a valid email address (e.g. name@domain.com).');
+      return;
+    }
+
+    sounds.playWebShoot();
+    setIsSending(true);
+    setEmailErrorMsg(null);
+    setEmailSuccessMsg(null);
+
+    try {
+      const canvas = canvasRef.current || document.createElement('canvas');
+      drawCertificateToCanvas(canvas);
+      const base64Png = canvas.toDataURL('image/png');
+
+      const res = await api.sendCertificateEmail({
+        user_id: user.id,
+        recipient_email: targetEmail.trim(),
+        student_name: studentName.trim() || user.name,
+        department: department.trim() || user.department || 'General',
+        reg_number: user.reg_number,
+        cert_type: certType,
+        cert_hash: certHash,
+        png_base64: base64Png
+      });
+
+      sounds.playSuccess();
+      setEmailSuccessMsg(res.message || `Official certificate successfully sent to ${targetEmail}!`);
+      setTimeout(() => {
+        setEmailModalOpen(false);
+        setEmailSuccessMsg(null);
+      }, 2500);
+    } catch (err: any) {
+      sounds.playError();
+      setEmailErrorMsg(err?.message || 'Failed to dispatch email. Please check network connection.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const displayEffectiveName = (studentName.trim() || user.name || 'Spider Cadet').toUpperCase();
+  const displayEffectiveDept = department.trim() || user.department || '';
+
   return (
-    <div className="p-6 sm:p-8 space-y-8 font-sans max-w-5xl mx-auto">
+    <div className="p-6 sm:p-8 space-y-6 font-sans max-w-5xl mx-auto">
       {/* Hidden offscreen canvas for PNG rendering */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -228,7 +300,19 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playWebShoot();
+              setEmailModalOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 via-pink-600 to-[#F52245] hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,34,69,0.35)] flex items-center gap-2 cursor-pointer"
+          >
+            <Mail className="w-4 h-4" />
+            <span>Send to Mail</span>
+          </button>
+
           <button
             type="button"
             onClick={handlePrint}
@@ -246,6 +330,75 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
             <Download className="w-4 h-4" />
             <span>Download PNG</span>
           </button>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          SPACE TO FILL DETAILS: NAME & DEPARTMENT + SEND TO MAIL OPTION
+          ========================================================================= */}
+      <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-[#087CFF]/30 bg-[#0A0F26]/90 shadow-[0_0_30px_rgba(8,124,255,0.15)] relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-end justify-between gap-5">
+          
+          {/* Input fields */}
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Student Name Input */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <UserIcon className="w-4 h-4 text-cyan-400" />
+                <span>Full Name for Certificate</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder="Enter your full name..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#101736] border border-slate-700 focus:border-[#00F0FF] text-xs font-heading font-bold text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                />
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 mt-1 block">
+                Updates recipient name on live certificate & downloads
+              </span>
+            </div>
+
+            {/* Department Input */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-[#00F0FF]" />
+                <span>College Department</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g. Computer Science, IT, AI & DS..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#101736] border border-slate-700 focus:border-[#00F0FF] text-xs font-mono text-cyan-200 placeholder-slate-500 outline-none transition-all shadow-inner"
+                />
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 mt-1 block">
+                Appears under your name as: DEPARTMENT OF {department.toUpperCase() || '...'}
+              </span>
+            </div>
+
+          </div>
+
+          {/* SEND TO MAIL Action Button */}
+          <div className="shrink-0 flex items-center">
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playWebShoot();
+                setEmailModalOpen(true);
+              }}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl font-heading font-black text-xs uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 via-pink-600 to-[#F52245] hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(245,34,69,0.4)] flex items-center justify-center gap-2.5 cursor-pointer"
+            >
+              <Mail className="w-4 h-4 text-white" />
+              <span>SEND TO MAIL</span>
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -298,16 +451,17 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
           <span className="font-heading font-black text-xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-[#00F0FF] uppercase tracking-widest block drop-shadow-md">
             {certTitle}
           </span>
+
           <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest block">
             THIS IS PROUDLY CONFERRED UPON
           </span>
 
           <h1 className="font-heading font-black text-3xl sm:text-4xl text-white tracking-wide py-1 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-            {(user.name || 'Spider Cadet').toUpperCase()}
+            {displayEffectiveName}
           </h1>
 
           <p className="font-mono text-xs font-bold text-cyan-300 tracking-wider">
-            {user.department ? `DEPARTMENT OF ${user.department.toUpperCase()} • ` : ''}
+            {displayEffectiveDept ? `DEPARTMENT OF ${displayEffectiveDept.toUpperCase()} • ` : ''}
             COLLEGE REGISTER NO: {user.reg_number || 'RA0000'}
           </p>
 
@@ -365,6 +519,133 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
           AUTHENTICITY TOKEN: {certHash} • VERIFY AT HTTPS://PYRANK.SPIDERVERSE.EDU/VERIFY
         </div>
       </div>
+
+      {/* =========================================================================
+          SEND TO MAIL PROMPT MODAL
+          ========================================================================= */}
+      {emailModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 border-2 border-purple-500/60 shadow-[0_0_60px_rgba(139,53,255,0.4)] relative overflow-hidden bg-[#0A0E24]">
+            
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(139,53,255,0.4)]">
+                  <Mail className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-purple-400 tracking-widest uppercase font-bold block">
+                    OFFICIAL CREDENTIAL DISPATCH
+                  </span>
+                  <h3 className="font-heading font-black text-xl text-white">
+                    SEND CERTIFICATE TO MAIL
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEmailModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs font-mono text-slate-300 mb-5 leading-relaxed">
+              Your official certificate for <strong className="text-white">{displayEffectiveName}</strong> ({displayEffectiveDept ? `Dept of ${displayEffectiveDept}` : 'Cadet'}) will be dispatched immediately to the email address entered below.
+            </p>
+
+            {/* Email Input Field */}
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2">
+                  Recipient Email Address <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <input
+                    type="email"
+                    value={targetEmail}
+                    onChange={(e) => setTargetEmail(e.target.value)}
+                    placeholder="Enter email (e.g. student@gmail.com)..."
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#101528] border border-slate-700 focus:border-purple-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* Credential Summary Box */}
+              <div className="p-3.5 rounded-xl bg-[#080B18]/80 border border-slate-800 text-[11px] font-mono text-slate-400 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Recipient Name:</span>
+                  <span className="text-white font-bold">{displayEffectiveName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department:</span>
+                  <span className="text-cyan-300 font-bold">{displayEffectiveDept || 'General'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Register No:</span>
+                  <span className="text-slate-300 font-bold">{user.reg_number || 'RA0000'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Certificate Type:</span>
+                  <span className="text-emerald-400 font-bold">{certType}</span>
+                </div>
+              </div>
+
+              {emailErrorMsg && (
+                <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs font-mono flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{emailErrorMsg}</span>
+                </div>
+              )}
+
+              {emailSuccessMsg && (
+                <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{emailSuccessMsg}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setEmailModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSending || !targetEmail.trim()}
+                onClick={handleSendEmail}
+                className="px-6 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 via-pink-600 to-[#F52245] hover:brightness-110 active:scale-95 text-white transition-all shadow-[0_0_20px_rgba(139,53,255,0.4)] flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                {isSending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>SENDING...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>DISPATCH TO EMAIL</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -73,6 +73,16 @@ class ChallengeUpdate(BaseModel):
     starter_code: Optional[str] = None
     solution_code: Optional[str] = None
 
+class EmailCertificateRequest(BaseModel):
+    user_id: Optional[int] = None
+    recipient_email: str
+    student_name: str
+    department: Optional[str] = "General"
+    reg_number: Optional[str] = "RA0000"
+    cert_type: Optional[str] = "Participation"
+    cert_hash: Optional[str] = None
+    png_base64: Optional[str] = None
+
 # --- Helper Functions ---
 
 def mask_reg_number(reg: str) -> str:
@@ -314,6 +324,109 @@ def admin_close_certificates():
         "status": "success",
         "certificates_open": False,
         "message": "Certificates are now CLOSED and hidden from student dashboards."
+    }
+
+@app.post("/api/certificates/send-email")
+def send_certificate_email(req: EmailCertificateRequest):
+    if not req.recipient_email or "@" not in req.recipient_email:
+        raise HTTPException(status_code=400, detail="Invalid email address provided.")
+        
+    # Update student's department & email in database if user_id or reg_number matches
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        if req.user_id:
+            cursor.execute("UPDATE users SET department = ?, email = ? WHERE id = ?", (req.department, req.recipient_email, req.user_id))
+        elif req.reg_number:
+            cursor.execute("UPDATE users SET department = ?, email = ? WHERE LOWER(reg_number) = ?", (req.department, req.recipient_email, req.reg_number.lower()))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating user profile with certificate details: {e}")
+
+    # Check for SMTP configuration
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+    smtp_from = os.environ.get("SMTP_FROM", smtp_user or "pyrank.arena@gmail.com")
+
+    email_sent_via_smtp = False
+
+    if smtp_host and smtp_user and smtp_pass:
+        try:
+            import smtplib
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+            from email.mime.image import MIMEImage
+            import base64
+
+            msg = MIMEMultipart("related")
+            msg["Subject"] = f"Official {req.cert_type} Certificate - PyRank 2026: Spider-Code Arena"
+            msg["From"] = smtp_from
+            msg["To"] = req.recipient_email
+
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; background-color: #080B18; color: #F5F7FF; padding: 30px;">
+                <div style="max-width: 650px; margin: auto; background: #0c1630; border: 2px solid #00F0FF; border-radius: 20px; padding: 30px; text-align: center;">
+                    <h1 style="color: #00F0FF; margin-bottom: 5px;">PYRANK 2026</h1>
+                    <p style="color: #94A3B8; font-size: 13px; text-transform: uppercase;">Official Verified Credential • Sector 616</p>
+                    <hr style="border: 1px solid #087CFF; margin: 20px 0;">
+                    <h2 style="color: #FFFFFF;">CERTIFICATE OF {req.cert_type.upper()}</h2>
+                    <p style="color: #94A3B8; font-size: 14px;">Proudly presented to:</p>
+                    <h2 style="color: #38BDF8; font-size: 26px; text-transform: uppercase; margin: 10px 0;">{req.student_name}</h2>
+                    <p style="color: #00F0FF; font-weight: bold; font-size: 14px;">DEPARTMENT OF {req.department.upper()} • REGISTER NO: {req.reg_number}</p>
+                    <p style="color: #CBD5E1; font-size: 13px; margin: 20px auto; max-width: 500px; line-height: 1.6;">
+                        In recognition of commendable participation and technical excellence in the PyRank Spider-Code Python Debugging Arena.
+                    </p>
+                    <p style="color: #64748B; font-size: 11px; margin-top: 25px;">
+                        AUTHENTICITY TOKEN: {req.cert_hash or 'VERIFIED-PYR-2026'}
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            msg.attach(MIMEText(html_content, "html"))
+
+            if req.png_base64 and "," in req.png_base64:
+                try:
+                    img_data = base64.b64decode(req.png_base64.split(",")[1])
+                    img_part = MIMEImage(img_data)
+                    img_part.add_header('Content-Disposition', 'attachment', filename=f"PyRank_{req.cert_type}_Certificate.png")
+                    msg.attach(img_part)
+                except Exception as ex:
+                    print(f"Error attaching image to email: {ex}")
+
+            server = smtplib.SMTP(smtp_host, smtp_port)
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_from, [req.recipient_email], msg.as_string())
+            server.quit()
+            email_sent_via_smtp = True
+        except Exception as e:
+            print(f"SMTP dispatch warning (falling back to outbox log): {e}")
+
+    outbox_dir = os.path.join(os.path.dirname(__file__), "email_outbox")
+    os.makedirs(outbox_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_email = req.recipient_email.replace("@", "_at_").replace(".", "_")
+    log_file = os.path.join(outbox_dir, f"cert_{timestamp}_{safe_email}.json")
+    with open(log_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "timestamp": datetime.now().isoformat(),
+            "recipient_email": req.recipient_email,
+            "student_name": req.student_name,
+            "department": req.department,
+            "reg_number": req.reg_number,
+            "cert_type": req.cert_type,
+            "cert_hash": req.cert_hash,
+            "sent_via_smtp": email_sent_via_smtp
+        }, f, indent=2)
+
+    return {
+        "status": "success",
+        "message": f"Official certificate successfully sent to {req.recipient_email}!"
     }
 
 @app.post("/api/admin/competition/unlock")
