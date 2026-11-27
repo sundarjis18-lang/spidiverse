@@ -171,37 +171,46 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       {/* Main Container - 2 Column Split Layout matching Reference */}
       <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
-        {/* Left Column: Hooded Cyber Spider-Man Artwork & Holographic Lore */}
-        <div className="lg:col-span-6 relative flex flex-col items-center lg:items-start text-center lg:text-left">
+        {/* Left Column: Official PYRANK & PROGRAMMING CLUB Showcases */}
+        <div className="lg:col-span-6 relative flex flex-col items-center justify-center gap-5 text-center lg:text-left w-full max-w-lg mx-auto">
 
-          {/* Cyberpunk Character Frame */}
-          <div className="relative w-full max-w-md sm:max-w-lg aspect-[4/5] rounded-3xl overflow-hidden border-2 border-[#F52245]/50 shadow-[0_0_50px_rgba(245,34,69,0.35)] group">
-            <img
-              src="/spider_login_hero.jpg"
-              alt="Hooded Cyber Spider-Man"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
-            />
-            {/* Ambient Hologram Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#080B18] via-transparent to-transparent opacity-90"></div>
-
-            {/* Glowing Corner Accents */}
-            <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full bg-[#080B18]/80 border border-[#F52245] text-[#F52245] text-xs font-mono font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#F52245] animate-ping"></span>
-              MULTIVERSE LINK ACTIVE
+          {/* Card 1: PYRANK Official Platform Banner */}
+          <div className="relative w-full rounded-3xl overflow-hidden glass-panel border border-[#087CFF]/50 shadow-[0_0_40px_rgba(8,124,255,0.25)] p-2.5 group hover:border-[#00F0FF] transition-all">
+            <div className="relative w-full aspect-[2.4/1] rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+              <img
+                src="/pyrank_banner.jpg"
+                alt="PyRank - Code Debug Compete"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
+            {/* Holographic Badge */}
+            <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#080B18]/90 border border-[#087CFF] text-[#00F0FF] text-[10px] font-mono font-bold tracking-wider shadow-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-ping"></span>
+              OFFICIAL ARENA PLATFORM
+            </div>
+          </div>
 
-            <div className="absolute bottom-6 left-6 right-6">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded font-mono text-[11px] font-bold bg-[#F52245]/30 text-rose-300 border border-[#F52245]/60 uppercase">
-                  AGENT STATUS: STANDBY
+          {/* Card 2: PROGRAMMING CLUB Organization Brand */}
+          <div className="relative w-full rounded-3xl overflow-hidden glass-panel border border-[#F52245]/40 shadow-[0_0_40px_rgba(245,34,69,0.2)] p-4 flex flex-col sm:flex-row items-center gap-4 group hover:border-[#F52245] transition-all">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 shrink-0 rounded-2xl overflow-hidden bg-black border border-slate-800 p-2 shadow-inner flex items-center justify-center">
+              <img
+                src="/programming_club_logo.jpg"
+                alt="Programming Club - Code to Innovate"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-[#F52245]/20 text-rose-300 border border-[#F52245]/40 uppercase tracking-wider">
+                  ORGANIZED BY
                 </span>
-                <span className="text-xs font-mono text-cyan-400">SECTOR 616</span>
+                <span className="text-[11px] font-mono text-cyan-400">SECTOR 616</span>
               </div>
-              <h2 className="font-heading text-2xl sm:text-3xl font-black text-white leading-tight">
-                THE MULTIVERSE IS CALLING, AGENT.
-              </h2>
-              <p className="text-xs font-mono text-slate-300 mt-1.5 leading-relaxed">
-                10 corrupted quantum neural subroutines threaten total dimensional collapse. Deploy your Python debugging capabilities.
+              <h3 className="font-heading text-lg sm:text-xl font-black text-white leading-tight">
+                PROGRAMMING CLUB
+              </h3>
+              <p className="text-[11px] font-mono text-slate-300 mt-1 leading-relaxed">
+                Code to Innovate • 10 corrupted quantum neural subroutines threaten total dimensional collapse. Deploy your Python debugging capabilities.
               </p>
             </div>
           </div>
