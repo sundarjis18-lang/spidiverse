@@ -19,7 +19,8 @@ import {
   Shield,
   ArrowRight,
   Cpu,
-  Layers
+  Layers,
+  ShieldAlert
 } from 'lucide-react';
 import { Challenge, SubmissionResponse, TestResult, User } from '../types';
 import { api } from '../utils/api';
@@ -98,6 +99,72 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState(1200);
+
+  // Anti-Cheat: Copy & Paste Restriction
+  const [copyPasteWarning, setCopyPasteWarning] = useState<string | null>(null);
+
+  const triggerCopyPasteWarning = (action: 'COPY' | 'PASTE') => {
+    sounds.playError();
+    setCopyPasteWarning(
+      action === 'PASTE'
+        ? 'RESTRICTED: Pasting external code is disabled. All solutions must be manually typed.'
+        : 'RESTRICTED: Copying code from the Arena editor is disabled by Arena Security Protocol.'
+    );
+    setTimeout(() => setCopyPasteWarning(null), 3500);
+  };
+
+  const handleEditorDidMount = (editor: any) => {
+    // 1. Intercept Monaco keydown events for copy/paste/cut shortcuts
+    editor.onKeyDown((e: any) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      const browserEvent = e.browserEvent || {};
+      const key = (browserEvent.key || '').toLowerCase();
+      const keyCode = browserEvent.keyCode;
+
+      const isCopy = isCtrlOrCmd && (key === 'c' || keyCode === 67);
+      const isPaste = (isCtrlOrCmd && (key === 'v' || keyCode === 86)) || (browserEvent.shiftKey && (key === 'insert' || keyCode === 45));
+      const isCut = isCtrlOrCmd && (key === 'x' || keyCode === 88);
+
+      if (isCopy || isPaste || isCut) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerCopyPasteWarning(isPaste ? 'PASTE' : 'COPY');
+      }
+    });
+
+    // 2. Intercept low-level DOM events on Monaco container
+    const domNode = editor.getDomNode();
+    if (domNode) {
+      domNode.addEventListener('paste', (e: ClipboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerCopyPasteWarning('PASTE');
+      }, true);
+
+      domNode.addEventListener('copy', (e: ClipboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerCopyPasteWarning('COPY');
+      }, true);
+
+      domNode.addEventListener('cut', (e: ClipboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerCopyPasteWarning('COPY');
+      }, true);
+
+      domNode.addEventListener('drop', (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerCopyPasteWarning('PASTE');
+      }, true);
+
+      domNode.addEventListener('contextmenu', (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, true);
+    }
+  };
 
   useEffect(() => {
     setCode(starterCode);
@@ -293,8 +360,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
             )}
           </div>
 
-          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${
-            isUserFinished
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${isUserFinished
               ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
               : globalUnlocked
                 ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
@@ -302,9 +368,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                   : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
             }`}>
-            <Clock className={`w-4 h-4 ${
-              isUserFinished ? 'text-emerald-400' : globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'
-            }`} />
+            <Clock className={`w-4 h-4 ${isUserFinished ? 'text-emerald-400' : globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'
+              }`} />
             <span>{formatCompetitionTimer(displayTimer)}</span>
             {isUserFinished ? (
               <span className="text-[10px] font-bold uppercase tracking-wider ml-0.5 text-emerald-300">
@@ -469,6 +534,12 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   <span>solution.py</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                 </div>
+
+                {/* Anti-Cheat Badge */}
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 font-mono text-[10px] font-bold tracking-wider">
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+                  <span>ANTI-CHEAT: COPY & PASTE DISABLED</span>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -514,13 +585,27 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
               </div>
             </div>
 
-            {/* Monaco Editor */}
-            <div className="flex-1 w-full bg-[#080B18]">
+            {/* Monaco Editor with Anti-Cheat Event Guards */}
+            <div
+              className="flex-1 w-full bg-[#080B18] relative"
+              onCopy={(e) => { e.preventDefault(); e.stopPropagation(); triggerCopyPasteWarning('COPY'); }}
+              onPaste={(e) => { e.preventDefault(); e.stopPropagation(); triggerCopyPasteWarning('PASTE'); }}
+              onCut={(e) => { e.preventDefault(); e.stopPropagation(); triggerCopyPasteWarning('COPY'); }}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            >
+              {copyPasteWarning && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-rose-950/95 border-2 border-rose-500 text-rose-200 font-mono text-xs flex items-center gap-2.5 shadow-[0_0_35px_rgba(245,34,69,0.7)] animate-in fade-in slide-in-from-top-2 pointer-events-none">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
+                  <span className="font-bold">{copyPasteWarning}</span>
+                </div>
+              )}
+
               <Editor
                 height="100%"
                 defaultLanguage="python"
                 value={code}
                 onChange={(val) => setCode(val || '')}
+                onMount={handleEditorDidMount}
                 theme="vs-dark"
                 options={{
                   readOnly: isAlreadyCompleted,
@@ -534,7 +619,9 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   wordWrap: 'on',
                   cursorBlinking: 'smooth',
                   renderLineHighlight: 'all',
-                  padding: { top: 12, bottom: 12 }
+                  padding: { top: 12, bottom: 12 },
+                  contextmenu: false,
+                  dragAndDrop: false
                 }}
               />
             </div>

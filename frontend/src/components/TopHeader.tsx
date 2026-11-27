@@ -61,8 +61,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       <div className="flex items-center gap-3.5 ml-auto">
 
         {/* Global Competition Timer Pill */}
-        <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${
-          isFinished
+        <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${isFinished
             ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
             : globalUnlocked
               ? 'bg-[#10182B] border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
@@ -70,18 +69,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 ? 'bg-amber-950/40 border-amber-500/40 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
                 : 'bg-[#10182B] border-slate-800 text-slate-500'
           }`}>
-          <Clock className={`w-3.5 h-3.5 ${
-            isFinished ? 'text-emerald-400' : globalUnlocked ? 'text-[#00F0FF] animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-600'
-          }`} />
+          <Clock className={`w-3.5 h-3.5 ${isFinished ? 'text-emerald-400' : globalUnlocked ? 'text-[#00F0FF] animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-600'
+            }`} />
           <span>{formatCompetitionTimer(displayTimer)}</span>
           {isFinished ? (
             <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold uppercase">
               FINAL
             </span>
           ) : !globalUnlocked ? (
-            <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
-              competitionTimer > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
-            }`}>
+            <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${competitionTimer > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
+              }`}>
               {competitionTimer > 0 ? 'FROZEN' : 'LOCKED'}
             </span>
           ) : null}
