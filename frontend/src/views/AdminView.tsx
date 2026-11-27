@@ -33,6 +33,7 @@ import { api } from '../utils/api';
 import { sounds } from '../utils/soundEffects';
 import { INITIAL_CHALLENGES } from '../utils/mockData';
 import { AdminSection } from '../components/AdminSidebar';
+import { CertificatesDashboard } from '../components/CertificatesDashboard';
 import { formatCompetitionTimer } from '../utils/timer';
 
 interface AdminViewProps {
@@ -1003,6 +1004,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
 
         </div>
+      )}
+
+      {/* =========================================================================
+          TAB 5: CERTIFICATES & CREDENTIALS VAULT (Certificates in AdminSidebar)
+          ========================================================================= */}
+      {activeSection === 'certificates' && (
+        <CertificatesDashboard
+          students={overview?.students || []}
+          leaderboard={leaderboard}
+        />
       )}
 
       {/* =========================================================================

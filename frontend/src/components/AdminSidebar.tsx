@@ -3,13 +3,14 @@ import {
   Clock,
   FileText,
   Users,
+  Trophy,
   Award,
   LogOut,
   Shield
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
-export type AdminSection = 'controls' | 'problems' | 'participants' | 'leaderboard';
+export type AdminSection = 'controls' | 'problems' | 'participants' | 'leaderboard' | 'certificates';
 
 interface AdminSidebarProps {
   activeSection: AdminSection;
@@ -28,7 +29,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'controls', label: 'Contest Controls', icon: Clock },
     { id: 'problems', label: 'Problems Manager', icon: FileText },
     { id: 'participants', label: 'Participants', icon: Users },
-    { id: 'leaderboard', label: 'Live Leaderboard', icon: Award }
+    { id: 'leaderboard', label: 'Live Leaderboard', icon: Trophy },
+    { id: 'certificates', label: 'Certificates', icon: Award }
   ];
 
   return (

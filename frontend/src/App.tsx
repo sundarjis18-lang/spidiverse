@@ -236,7 +236,8 @@ export function App() {
               activeSectionTitle={
                 adminSection === 'controls' ? 'Contest Controls' :
                   adminSection === 'problems' ? 'Problems Manager' :
-                    adminSection === 'participants' ? 'Participants' : 'Live Leaderboard'
+                    adminSection === 'participants' ? 'Participants' :
+                      adminSection === 'certificates' ? 'Certificates' : 'Live Leaderboard'
               }
               isUnlocked={globalUnlocked}
               competitionTimer={competitionTimer}
