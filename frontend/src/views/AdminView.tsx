@@ -733,6 +733,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <tr className="border-b border-slate-800 bg-[#080B18]/90 text-[11px] text-slate-400 uppercase tracking-wider">
                     <th className="py-4 px-6">Player Cadet</th>
                     <th className="py-4 px-6">College Register No.</th>
+                    <th className="py-4 px-6">Department</th>
                     <th className="py-4 px-6">College Email</th>
                     <th className="py-4 px-6">Registration Date</th>
                     <th className="py-4 px-6 text-center">Account Status</th>
@@ -744,7 +745,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <tbody className="divide-y divide-slate-800/60">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-500 font-mono text-xs">
+                      <td colSpan={9} className="py-8 text-center text-slate-500 font-mono text-xs">
                         No registered players found matching &quot;{searchStudent}&quot;.
                       </td>
                     </tr>
@@ -763,6 +764,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
                           <td className="py-4 px-6 text-slate-300 font-mono font-semibold">
                             {student.reg_number}
+                          </td>
+
+                          <td className="py-4 px-6 text-cyan-300 font-mono">
+                            {student.department ? (
+                              <span className="px-2 py-0.5 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-semibold text-[11px]">
+                                {student.department}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 text-xs">—</span>
+                            )}
                           </td>
 
                           <td className="py-4 px-6 text-slate-400 font-mono">
@@ -867,6 +878,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     <th className="py-4 px-6 text-center w-20">Rank</th>
                     <th className="py-4 px-6">Student Cadet</th>
                     <th className="py-4 px-6">College Register No.</th>
+                    <th className="py-4 px-6 text-center">Department</th>
                     <th className="py-4 px-6 text-center">Nodes Cleared</th>
                     <th className="py-4 px-6 text-center">Completion Time</th>
                     <th className="py-4 px-6 text-right">Total Score</th>
@@ -875,7 +887,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <tbody className="divide-y divide-slate-800/60">
                   {leaderboard.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-500 font-mono text-xs">
+                      <td colSpan={7} className="py-8 text-center text-slate-500 font-mono text-xs">
                         No participants currently on the leaderboard.
                       </td>
                     </tr>
@@ -931,6 +943,17 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           {/* Register Number */}
                           <td className="py-4 px-6 text-slate-300 font-mono">
                             {entry.reg_number || entry.masked_reg}
+                          </td>
+
+                          {/* Department */}
+                          <td className="py-4 px-6 text-center font-mono">
+                            {entry.department ? (
+                              <span className="px-2 py-0.5 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-semibold text-[11px]">
+                                {entry.department}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 text-xs">—</span>
+                            )}
                           </td>
 
                           {/* Challenges Completed */}

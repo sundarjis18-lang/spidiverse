@@ -46,6 +46,7 @@ export interface User {
   name: string;
   email: string;
   reg_number: string;
+  department?: string;
   avatar: string;
   points: number;
   completed_challenges: number[];
@@ -74,6 +75,7 @@ export interface LeaderboardEntry {
   name: string;
   reg_number?: string;
   masked_reg: string;
+  department?: string;
   avatar: string;
   points: number;
   completed_count: number;
@@ -137,6 +139,7 @@ export interface AdminStudent {
   name: string;
   email: string;
   reg_number: string;
+  department?: string;
   registration_date?: string;
   created_at?: string;
   account_status?: string;

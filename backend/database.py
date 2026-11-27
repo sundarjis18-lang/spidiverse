@@ -29,6 +29,7 @@ def init_db():
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         reg_number TEXT NOT NULL,
+        department TEXT DEFAULT '',
         password TEXT NOT NULL,
         avatar TEXT DEFAULT 'spiderman-classic',
         points INTEGER DEFAULT 0,
@@ -59,6 +60,11 @@ def init_db():
     
     try:
         cursor.execute("ALTER TABLE submissions ADD COLUMN hints_used INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN department TEXT DEFAULT ''")
     except sqlite3.OperationalError:
         pass
     

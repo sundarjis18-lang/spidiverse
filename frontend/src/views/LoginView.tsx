@@ -5,6 +5,7 @@ import {
   Mail,
   User as UserIcon,
   Hash,
+  GraduationCap,
   Sparkles,
   ChevronRight,
   KeyRound,
@@ -39,6 +40,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
   // Form states
   const [name, setName] = useState('');
+  const [department, setDepartment] = useState('');
   const [email, setEmail] = useState('');
   const [regNumber, setRegNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -93,6 +95,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       if (!regNumber.trim()) {
         throw new Error('Please enter your Student Register Number.');
       }
+      if (!department.trim()) {
+        throw new Error('Please enter your Department (e.g. CSE, IT, AI&DS).');
+      }
       if (!email.trim()) {
         throw new Error('Please enter your Gmail / College Email ID.');
       }
@@ -115,7 +120,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
       sounds.playWebShoot();
       const ident = email.trim() || regNumber.trim() || name.trim();
-      const user = await api.login(ident, password, regNumber.trim(), name.trim());
+      const user = await api.login(ident, password, regNumber.trim(), name.trim(), department.trim());
       sounds.playSuccess();
       onLoginSuccess(user);
     } catch (err: unknown) {
@@ -243,7 +248,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                     setAdminModalPass('');
                   }}
                   className="w-12 h-12 rounded-2xl p-2 bg-[#080B18] border border-[#00F0FF]/50 shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer select-none active:scale-95 transition-transform flex items-center justify-center hover:border-[#00F0FF] hover:shadow-[0_0_25px_rgba(0,240,255,0.6)]"
-                  title="PyRank Admin Protocol"
                 >
                   <img src="/pyrank_icon.png" alt="PyRank" className="w-full h-full object-contain pointer-events-none" />
                 </div>
@@ -305,6 +309,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                       value={regNumber}
                       onChange={(e) => setRegNumber(e.target.value)}
                       placeholder="e.g. RA2111003010142"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Department */}
+                <div>
+                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                    Department <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <GraduationCap className="w-4 h-4 text-[#087CFF]" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      placeholder="e.g. CSE / IT / AI&DS / ECE"
                       className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
                     />
                   </div>

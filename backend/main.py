@@ -37,6 +37,7 @@ def startup_event():
 class LoginRequest(BaseModel):
     name: Optional[str] = None
     reg_number: Optional[str] = None
+    department: Optional[str] = None
     email: Optional[str] = None
     identifier: Optional[str] = None
     password: str
@@ -45,6 +46,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     reg_number: str
+    department: Optional[str] = ""
     password: str
     avatar: Optional[str] = "classic"
 
@@ -88,6 +90,7 @@ def login(req: LoginRequest):
     raw_ident = (req.identifier or req.email or "").strip()
     raw_reg = (req.reg_number or "").strip()
     raw_name = (req.name or "").strip()
+    raw_dept = (req.department or "").strip()
 
     # --- ADMIN CASE-SENSITIVE AUTHENTICATION ---
     # Username: "spiderman" | Password: "pg123" (strictly case sensitive)
@@ -168,12 +171,18 @@ def login(req: LoginRequest):
         existing = cursor.fetchone()
         if existing and existing["password"] == password:
             user = existing
+            if raw_dept and ("department" not in existing.keys() or not existing["department"]):
+                try:
+                    cursor.execute("UPDATE users SET department = ? WHERE id = ?", (raw_dept, user["id"]))
+                    conn.commit()
+                except Exception:
+                    pass
         elif not existing:
             now_iso = datetime.utcnow().isoformat()
             cursor.execute("""
-                INSERT INTO users (name, email, reg_number, password, avatar, points, completed_challenges, time_spent_seconds, role, created_at)
-                VALUES (?, ?, ?, ?, 'classic', 0, '[]', 0, 'student', ?)
-            """, (disp_name, disp_email, disp_reg, password, now_iso))
+                INSERT INTO users (name, email, reg_number, department, password, avatar, points, completed_challenges, time_spent_seconds, role, created_at)
+                VALUES (?, ?, ?, ?, ?, 'classic', 0, '[]', 0, 'student', ?)
+            """, (disp_name, disp_email, disp_reg, raw_dept, password, now_iso))
             conn.commit()
             new_id = cursor.lastrowid
             cursor.execute("SELECT * FROM users WHERE id = ?", (new_id,))
@@ -191,6 +200,8 @@ def login(req: LoginRequest):
         except:
             completed_list = []
 
+    dept_val = user["department"] if "department" in user.keys() and user["department"] else ""
+
     return {
         "status": "success",
         "user": {
@@ -198,6 +209,7 @@ def login(req: LoginRequest):
             "name": user["name"],
             "email": user["email"],
             "reg_number": user["reg_number"],
+            "department": dept_val,
             "avatar": user["avatar"],
             "points": user["points"],
             "completed_challenges": completed_list,
@@ -222,10 +234,11 @@ def register(req: RegisterRequest):
         raise HTTPException(status_code=400, detail="Registration number is already assigned.")
         
     now = datetime.utcnow().isoformat()
+    raw_dept = (req.department or "").strip()
     cursor.execute("""
-        INSERT INTO users (name, email, reg_number, password, avatar, points, completed_challenges, time_spent_seconds, role, created_at)
-        VALUES (?, ?, ?, ?, ?, 0, '[]', 0, 'student', ?)
-    """, (req.name.strip(), req.email.strip(), req.reg_number.strip(), req.password.strip(), req.avatar, now))
+        INSERT INTO users (name, email, reg_number, department, password, avatar, points, completed_challenges, time_spent_seconds, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 0, '[]', 0, 'student', ?)
+    """, (req.name.strip(), req.email.strip(), req.reg_number.strip(), raw_dept, req.password.strip(), req.avatar, now))
     conn.commit()
     new_id = cursor.lastrowid
     conn.close()
@@ -237,6 +250,7 @@ def register(req: RegisterRequest):
             "name": req.name.strip(),
             "email": req.email.strip(),
             "reg_number": req.reg_number.strip(),
+            "department": raw_dept,
             "avatar": req.avatar,
             "points": 0,
             "completed_challenges": [],
@@ -574,7 +588,7 @@ def get_leaderboard():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, name, reg_number, avatar, points, completed_challenges, time_spent_seconds
+        SELECT id, name, reg_number, department, avatar, points, completed_challenges, time_spent_seconds
         FROM users
         WHERE role = 'student'
     """)
@@ -621,12 +635,14 @@ def get_leaderboard():
         is_completed_all = item["is_finished"]
         effective_time = item["effective_time"]
 
+        dept_str = r["department"] if "department" in r.keys() and r["department"] else ""
         leaderboard.append({
             "rank": rank,
             "id": r["id"],
             "name": r["name"],
             "reg_number": r["reg_number"],
             "masked_reg": mask_reg_number(r["reg_number"]),
+            "department": dept_str,
             "avatar": r["avatar"],
             "points": r["points"],
             "completed_count": len(completed),
@@ -779,7 +795,7 @@ def admin_overview():
     
     # Query all registered students
     cursor.execute("""
-        SELECT u.id, u.name, u.email, u.reg_number, u.points, u.completed_challenges, u.time_spent_seconds, u.created_at
+        SELECT u.id, u.name, u.email, u.reg_number, u.department, u.points, u.completed_challenges, u.time_spent_seconds, u.created_at
         FROM users u WHERE u.role = 'student'
         ORDER BY u.points DESC, u.time_spent_seconds ASC, u.id ASC
     """)
@@ -818,11 +834,14 @@ def admin_overview():
             _, _, current_competition_elapsed = get_competition_time_info()
             student_time_sec = current_competition_elapsed
 
+        dept_str = s["department"] if "department" in s.keys() and s["department"] else ""
+
         students.append({
             "id": s["id"],
             "name": s["name"],
             "email": s["email"],
             "reg_number": s["reg_number"],
+            "department": dept_str,
             "registration_date": formatted_date,
             "created_at": formatted_date,
             "account_status": account_status,

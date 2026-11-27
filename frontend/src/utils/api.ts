@@ -116,7 +116,7 @@ export function setStoredChallenges(challenges: Challenge[]): void {
 
 export const api = {
   // Login
-  async login(emailOrReg: string, password: string, regNumber?: string, name?: string): Promise<User> {
+  async login(emailOrReg: string, password: string, regNumber?: string, name?: string, department?: string): Promise<User> {
     try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
@@ -125,6 +125,7 @@ export const api = {
           email: emailOrReg,
           reg_number: regNumber || (emailOrReg && emailOrReg.toUpperCase().startsWith('RA') ? emailOrReg : undefined),
           name: name || undefined,
+          department: department || undefined,
           password
         })
       });
