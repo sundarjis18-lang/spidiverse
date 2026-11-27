@@ -107,6 +107,11 @@ def init_db():
     if not cursor.fetchone():
         cursor.execute("INSERT INTO competition_config (key, value) VALUES ('global_challenges_unlocked', '0')")
 
+    # Default: certificates_open = '0' (closed until admin opens)
+    cursor.execute("SELECT value FROM competition_config WHERE key = 'certificates_open'")
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO competition_config (key, value) VALUES ('certificates_open', '0')")
+
     # Seed / Update default challenges
     for ch in CHALLENGES:
         cursor.execute("""
@@ -349,6 +354,26 @@ def reset_competition_timer():
     _cached_accumulated_elapsed = 0
 
     return unlocked, start_ts, 0
+
+def get_certificates_open_status() -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM competition_config WHERE key = 'certificates_open'")
+    row = cursor.fetchone()
+    conn.close()
+    return (row["value"] == "1") if row else False
+
+def set_certificates_open_status(open_status: bool) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    val = "1" if open_status else "0"
+    cursor.execute("""
+        INSERT INTO competition_config (key, value) VALUES ('certificates_open', ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    """, (val,))
+    conn.commit()
+    conn.close()
+    return open_status
 
 if __name__ == "__main__":
     init_db()

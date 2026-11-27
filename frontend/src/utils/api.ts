@@ -502,6 +502,50 @@ export const api = {
     };
   },
 
+  // Certificates Access Control
+  async getCertificatesStatus(): Promise<{ certificates_open: boolean }> {
+    try {
+      const res = await fetch(`${BASE_URL}/certificates/status`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) { }
+    const localOpen = localStorage.getItem('spider_certificates_open') === '1';
+    return { certificates_open: localOpen };
+  },
+
+  async openCertificates(): Promise<{ status: string; certificates_open: boolean; message: string }> {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/certificates/open`, { method: 'POST' });
+      if (res.ok) {
+        localStorage.setItem('spider_certificates_open', '1');
+        return await res.json();
+      }
+    } catch (err) { }
+    localStorage.setItem('spider_certificates_open', '1');
+    return {
+      status: 'success',
+      certificates_open: true,
+      message: 'Certificates are now OPEN.'
+    };
+  },
+
+  async closeCertificates(): Promise<{ status: string; certificates_open: boolean; message: string }> {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/certificates/close`, { method: 'POST' });
+      if (res.ok) {
+        localStorage.setItem('spider_certificates_open', '0');
+        return await res.json();
+      }
+    } catch (err) { }
+    localStorage.setItem('spider_certificates_open', '0');
+    return {
+      status: 'success',
+      certificates_open: false,
+      message: 'Certificates are now CLOSED.'
+    };
+  },
+
   // Admin Overview
   async getAdminOverview(): Promise<AdminOverviewData> {
     try {

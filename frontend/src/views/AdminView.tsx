@@ -45,6 +45,7 @@ interface AdminViewProps {
   setActiveSection?: (section: AdminSection) => void;
   competitionTimer?: number;
   onTimerReset?: () => void;
+  onToggleCertificates?: (open: boolean) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -55,7 +56,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   activeSection: propActiveSection,
   setActiveSection: propSetActiveSection,
   competitionTimer = 0,
-  onTimerReset
+  onTimerReset,
+  onToggleCertificates
 }) => {
   const [internalSection, setInternalSection] = useState<AdminSection>('controls');
   const activeSection = propActiveSection || internalSection;
@@ -1013,6 +1015,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <CertificatesDashboard
           students={overview?.students || []}
           leaderboard={leaderboard}
+          onToggleCertificates={onToggleCertificates}
         />
       )}
 

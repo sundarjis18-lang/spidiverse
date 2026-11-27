@@ -133,6 +133,7 @@ export interface CompetitionStatus {
   message: string;
   start_time?: number;
   elapsed_seconds?: number;
+  certificates_open?: boolean;
 }
 
 export interface AdminStudent {

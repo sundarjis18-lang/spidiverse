@@ -4,6 +4,7 @@ import {
   Terminal,
   Layers,
   Trophy,
+  Award,
   User as UserIcon,
   Flame,
   Zap,
@@ -20,13 +21,15 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onLogout: () => void;
+  certificatesOpen?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   user,
   activeTab,
   setActiveTab,
-  onLogout
+  onLogout,
+  certificatesOpen = false
 }) => {
   const avatarInfo = (user && user.avatar && SPIDER_AVATARS[user.avatar]) || SPIDER_AVATARS.classic;
   const completedCount = user?.completed_challenges?.length || 0;
@@ -45,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'progression', label: 'Web Matrix', icon: Compass },
       { id: 'leaderboard', label: 'Rankings', icon: Trophy },
+      ...(certificatesOpen ? [{ id: 'certificates', label: 'Certificates', icon: Award }] : []),
       { id: 'profile', label: 'Profile', icon: UserIcon }
     ];
 

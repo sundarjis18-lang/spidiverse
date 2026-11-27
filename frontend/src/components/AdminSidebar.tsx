@@ -35,7 +35,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <aside className="w-64 bg-[#080B18] border-r border-slate-800/80 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-40 select-none">
-      
+
       {/* Top Header & Navigation Items */}
       <div className="flex flex-col">
         {/* Brand / Title Banner */}
@@ -67,11 +67,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   sounds.playWebShoot();
                   setActiveSection(item.id);
                 }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-semibold tracking-wide transition-all duration-200 text-left ${
-                  isActive
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-semibold tracking-wide transition-all duration-200 text-left ${isActive
                     ? 'bg-[#141A33] border border-indigo-500/40 text-[#7C9BFF] shadow-[0_0_20px_rgba(99,102,241,0.2)]'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#7C9BFF]' : 'text-slate-400'}`} />
                 <span className="truncate">{item.label}</span>
@@ -83,7 +82,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* Bottom Profile & Sign Out (Exact match to screenshot) */}
       <div className="p-4 border-t border-slate-800/80 space-y-3.5">
-        
+
         {/* Profile Row: [A] admin ORCHESTRATOR */}
         <div className="flex items-center gap-3 px-1">
           <div className="w-9 h-9 rounded-full bg-[#182038] border border-slate-700/80 flex items-center justify-center font-bold text-slate-200 text-sm shadow-sm shrink-0">

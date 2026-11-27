@@ -10,7 +10,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status, get_competition_time_info, reset_competition_timer
+from database import (
+    get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status,
+    get_competition_time_info, reset_competition_timer,
+    get_certificates_open_status, set_certificates_open_status
+)
 from executor import execute_user_code, test_user_solution
 
 app = FastAPI(title="SPIDER-CODE ARENA API", version="2.0.0")
@@ -275,12 +279,39 @@ def verify_session(user_id: int):
 @app.get("/api/competition/status")
 def get_competition_status():
     unlocked, start_ts, elapsed = get_competition_time_info()
+    certs_open = get_certificates_open_status()
     return {
         "unlocked": unlocked,
         "status": "UNLOCKED" if unlocked else "LOCKED",
         "message": "All 10 challenges are unlocked and live for competition." if unlocked else "All challenges are currently locked by the Overseer.",
         "start_time": start_ts,
-        "elapsed_seconds": elapsed
+        "elapsed_seconds": elapsed,
+        "certificates_open": certs_open
+    }
+
+@app.get("/api/certificates/status")
+def get_certificates_status():
+    return {
+        "status": "success",
+        "certificates_open": get_certificates_open_status()
+    }
+
+@app.post("/api/admin/certificates/open")
+def admin_open_certificates():
+    set_certificates_open_status(True)
+    return {
+        "status": "success",
+        "certificates_open": True,
+        "message": "Certificates are now OPEN. The Certificates option is visible on all student dashboards."
+    }
+
+@app.post("/api/admin/certificates/close")
+def admin_close_certificates():
+    set_certificates_open_status(False)
+    return {
+        "status": "success",
+        "certificates_open": False,
+        "message": "Certificates are now CLOSED and hidden from student dashboards."
     }
 
 @app.post("/api/admin/competition/unlock")

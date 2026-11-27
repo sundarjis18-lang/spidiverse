@@ -12,6 +12,7 @@ import { LeaderboardView } from './views/LeaderboardView';
 import { ProfileView } from './views/ProfileView';
 import { VictoryView } from './views/VictoryView';
 import { AdminView } from './views/AdminView';
+import { StudentCertificateView } from './views/StudentCertificateView';
 import { Shield } from 'lucide-react';
 
 import { User, Challenge } from './types';
@@ -26,6 +27,7 @@ export function App() {
   const [competitionTimer, setCompetitionTimer] = useState<number>(0);
   const [adminSection, setAdminSection] = useState<AdminSection>('controls');
   const [previewPlayerMode, setPreviewPlayerMode] = useState<boolean>(false);
+  const [certificatesOpen, setCertificatesOpen] = useState<boolean>(false);
 
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
     return INITIAL_CHALLENGES.map(normalizeChallenge);
@@ -38,6 +40,7 @@ export function App() {
     if (path === '/arena' || window.location.hash === '#/arena') return 'arena';
     if (path === '/matrix' || path === '/progression' || window.location.hash === '#/matrix') return 'progression';
     if (path === '/leaderboard' || window.location.hash === '#/leaderboard') return 'leaderboard';
+    if (path === '/certificates' || window.location.hash === '#/certificates') return 'certificates';
     if (path === '/profile' || window.location.hash === '#/profile') return 'profile';
     return 'dashboard';
   };
@@ -113,6 +116,9 @@ export function App() {
           }
         }
       }
+      if (statusData && typeof statusData.certificates_open === 'boolean') {
+        setCertificatesOpen(statusData.certificates_open);
+      }
       if (data && Array.isArray(data) && data.length > 0) {
         setChallenges(data.map(normalizeChallenge));
       }
@@ -164,7 +170,7 @@ export function App() {
     setActiveTab('arena');
   };
 
-  const handleChallengeCompleted = (challengeId: number, questPoints: number, overallPenalty: number = 0, newTotalPoints?: number) => {
+  const handleChallengeCompleted = (challengeId: number, points: number) => {
     if (!user) return;
 
     const currentCompleted = user.completed_challenges || [];
@@ -172,13 +178,9 @@ export function App() {
       ? currentCompleted
       : [...currentCompleted, challengeId];
 
-    const finalPoints = typeof newTotalPoints === 'number'
-      ? newTotalPoints
-      : Math.max(0, (user.points || 0) + questPoints - overallPenalty);
-
     const updatedUser: User = {
       ...user,
-      points: finalPoints,
+      points: (user.points || 0) + points,
       completed_challenges: newCompleted
     };
     setUser(updatedUser);
@@ -237,7 +239,7 @@ export function App() {
                 adminSection === 'controls' ? 'Contest Controls' :
                   adminSection === 'problems' ? 'Problems Manager' :
                     adminSection === 'participants' ? 'Participants' :
-                      adminSection === 'certificates' ? 'Certificates' : 'Live Leaderboard'
+                      adminSection === 'certificates' ? 'Certificates & Credentials' : 'Live Leaderboard'
               }
               isUnlocked={globalUnlocked}
               competitionTimer={competitionTimer}
@@ -264,6 +266,7 @@ export function App() {
                 setActiveSection={setAdminSection}
                 competitionTimer={competitionTimer}
                 onTimerReset={() => setCompetitionTimer(0)}
+                onToggleCertificates={(open) => setCertificatesOpen(open)}
               />
             </main>
           </div>
@@ -306,6 +309,7 @@ export function App() {
                 if (tab !== 'arena') setSelectedChallengeId(null);
               }}
               onLogout={handleLogout}
+              certificatesOpen={certificatesOpen}
             />
 
             {/* Player Main Area */}
@@ -349,6 +353,8 @@ export function App() {
                   />
                 ) : activeTab === 'leaderboard' ? (
                   <LeaderboardView user={user} />
+                ) : activeTab === 'certificates' ? (
+                  <StudentCertificateView user={user} />
                 ) : activeTab === 'profile' ? (
                   <ProfileView user={user} />
                 ) : activeTab === 'victory' ? (
@@ -369,6 +375,7 @@ export function App() {
                     onRefreshChallenges={loadChallenges}
                     activeSection={adminSection}
                     setActiveSection={setAdminSection}
+                    onToggleCertificates={(open) => setCertificatesOpen(open)}
                   />
                 ) : (
                   <DashboardView
