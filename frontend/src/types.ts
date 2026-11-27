@@ -77,6 +77,7 @@ export interface LeaderboardEntry {
   avatar: string;
   points: number;
   completed_count: number;
+  is_finished?: boolean;
   completion_time: string;
   time_seconds: number;
 }
@@ -143,6 +144,7 @@ export interface AdminStudent {
   points: number;
   completed_count: number;
   completed_ids: number[];
+  is_finished?: boolean;
   time_spent: string;
   time_spent_seconds?: number;
 }

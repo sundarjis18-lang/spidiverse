@@ -534,9 +534,17 @@ def submit_solution(req: SubmitCodeRequest):
             points_awarded = max(min_points, points - total_reduction)
             
             new_total_points = user["points"] + points_awarded
-            cursor.execute("""
-                UPDATE users SET points = ?, completed_challenges = ? WHERE id = ?
-            """, (new_total_points, json.dumps(completed_list), req.user_id))
+            
+            # If student finishes all 10 challenges, freeze their timing at current competition elapsed time!
+            if len(completed_list) >= 10:
+                _, _, current_competition_elapsed = get_competition_time_info()
+                cursor.execute("""
+                    UPDATE users SET points = ?, completed_challenges = ?, time_spent_seconds = ? WHERE id = ?
+                """, (new_total_points, json.dumps(completed_list), current_competition_elapsed, req.user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users SET points = ?, completed_challenges = ? WHERE id = ?
+                """, (new_total_points, json.dumps(completed_list), req.user_id))
             
             if req.challenge_id < 10:
                 new_unlocked = req.challenge_id + 1
@@ -569,19 +577,50 @@ def get_leaderboard():
         SELECT id, name, reg_number, avatar, points, completed_challenges, time_spent_seconds
         FROM users
         WHERE role = 'student'
-        ORDER BY points DESC, time_spent_seconds ASC, id ASC
     """)
     rows = cursor.fetchall()
     conn.close()
     
-    leaderboard = []
-    for rank, r in enumerate(rows, 1):
+    _, _, current_competition_elapsed = get_competition_time_info()
+    
+    parsed_items = []
+    for r in rows:
         completed = []
         if r["completed_challenges"]:
             try:
                 completed = json.loads(r["completed_challenges"]) if isinstance(r["completed_challenges"], str) else r["completed_challenges"]
             except:
                 completed = []
+        
+        is_completed_all = (len(completed) >= 10)
+        # If user finished all 10 challenges, their timing is frozen at their finish time!
+        # If user has not finished all 10 challenges, their timing reflects current elapsed time!
+        if is_completed_all and r["time_spent_seconds"] and r["time_spent_seconds"] > 0:
+            effective_time = r["time_spent_seconds"]
+        else:
+            effective_time = current_competition_elapsed
+
+        parsed_items.append({
+            "row": r,
+            "completed": completed,
+            "is_finished": is_completed_all,
+            "effective_time": effective_time
+        })
+
+    # Sort: highest points first; tie-break finished players by fastest completion time, else by id
+    parsed_items.sort(key=lambda item: (
+        -item["row"]["points"],
+        item["effective_time"] if item["is_finished"] else 999999,
+        item["row"]["id"]
+    ))
+
+    leaderboard = []
+    for rank, item in enumerate(parsed_items, 1):
+        r = item["row"]
+        completed = item["completed"]
+        is_completed_all = item["is_finished"]
+        effective_time = item["effective_time"]
+
         leaderboard.append({
             "rank": rank,
             "id": r["id"],
@@ -591,8 +630,9 @@ def get_leaderboard():
             "avatar": r["avatar"],
             "points": r["points"],
             "completed_count": len(completed),
-            "completion_time": format_time(r["time_spent_seconds"]),
-            "time_seconds": r["time_spent_seconds"]
+            "is_finished": is_completed_all,
+            "completion_time": format_time(effective_time),
+            "time_seconds": effective_time
         })
         
     return {"leaderboard": leaderboard}
@@ -771,6 +811,13 @@ def admin_overview():
         except:
             formatted_date = reg_date
             
+        is_completed_all = (len(completed) >= 10)
+        if is_completed_all and s["time_spent_seconds"] and s["time_spent_seconds"] > 0:
+            student_time_sec = s["time_spent_seconds"]
+        else:
+            _, _, current_competition_elapsed = get_competition_time_info()
+            student_time_sec = current_competition_elapsed
+
         students.append({
             "id": s["id"],
             "name": s["name"],
@@ -783,8 +830,9 @@ def admin_overview():
             "points": s["points"],
             "completed_count": len(completed),
             "completed_ids": completed,
-            "time_spent": format_time(s["time_spent_seconds"]),
-            "time_spent_seconds": s["time_spent_seconds"]
+            "is_finished": is_completed_all,
+            "time_spent": format_time(student_time_sec),
+            "time_spent_seconds": student_time_sec
         })
         
     cursor.execute("SELECT COUNT(*) as count FROM submissions")

@@ -789,9 +789,22 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
                           {/* Completion Time */}
                           <td className="py-4 px-6 text-center text-slate-300 font-mono">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#10182B] border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
-                              <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                              <span>{student.time_spent || (student.time_spent_seconds ? `${Math.floor(student.time_spent_seconds / 60)}m ${student.time_spent_seconds % 60}s` : '0m 00s')}</span>
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold ${
+                              isFinished
+                                ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                                : 'bg-slate-800/60 border border-slate-700/60 text-slate-300'
+                            }`}>
+                              <Clock className={`w-3.5 h-3.5 ${isFinished ? 'text-emerald-400' : 'text-cyan-400 animate-pulse'}`} />
+                              <span>
+                                {isFinished
+                                  ? (student.time_spent || formatCompetitionTimer(student.time_spent_seconds || 0))
+                                  : formatCompetitionTimer(competitionTimer)}
+                              </span>
+                              {isFinished && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold uppercase">
+                                  FINAL
+                                </span>
+                              )}
                             </div>
                           </td>
 
@@ -931,9 +944,24 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
                           {/* Completion Time */}
                           <td className="py-4 px-6 text-center text-slate-300 font-mono">
-                            <div className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#10182B] border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
-                              <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                              <span>{entry.completion_time}</span>
+                            <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold ${
+                              entry.is_finished || entry.completed_count >= 10
+                                ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                                : 'bg-[#10182B] border border-cyan-500/30 text-cyan-300'
+                            }`}>
+                              <Clock className={`w-3.5 h-3.5 ${
+                                entry.is_finished || entry.completed_count >= 10 ? 'text-emerald-400' : 'text-cyan-400 animate-pulse'
+                              }`} />
+                              <span>
+                                {entry.is_finished || entry.completed_count >= 10
+                                  ? entry.completion_time
+                                  : formatCompetitionTimer(competitionTimer)}
+                              </span>
+                              {(entry.is_finished || entry.completed_count >= 10) && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold uppercase">
+                                  FINAL
+                                </span>
+                              )}
                             </div>
                           </td>
 

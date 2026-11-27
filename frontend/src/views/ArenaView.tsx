@@ -93,6 +93,9 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
   const minPoints = Math.round(challenge.points * 0.50);
   const currentPotentialReward = Math.max(minPoints, challenge.points - currentPenalty);
 
+  const isUserFinished = Array.isArray(user?.completed_challenges) && user.completed_challenges.length >= 10;
+  const displayTimer = isUserFinished ? (user.time_spent_seconds || competitionTimer) : competitionTimer;
+
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState(1200);
 
@@ -290,19 +293,28 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
             )}
           </div>
 
-          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${globalUnlocked
-              ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
-              : competitionTimer > 0
-                ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-                : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${
+            isUserFinished
+              ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+              : globalUnlocked
+                ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
+                : competitionTimer > 0
+                  ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                  : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
             }`}>
-            <Clock className={`w-4 h-4 ${globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span>{formatCompetitionTimer(competitionTimer)}</span>
-            {!globalUnlocked && (
+            <Clock className={`w-4 h-4 ${
+              isUserFinished ? 'text-emerald-400' : globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'
+            }`} />
+            <span>{formatCompetitionTimer(displayTimer)}</span>
+            {isUserFinished ? (
+              <span className="text-[10px] font-bold uppercase tracking-wider ml-0.5 text-emerald-300">
+                FINAL
+              </span>
+            ) : !globalUnlocked ? (
               <span className="text-[10px] font-normal uppercase tracking-wider ml-0.5">
                 {competitionTimer > 0 ? 'FROZEN' : 'LOCKED'}
               </span>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
