@@ -7,13 +7,19 @@ from challenges_data import CHALLENGES
 DB_PATH = os.path.join(os.path.dirname(__file__), "spider_arena.db")
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=25.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout = 25000")
     return conn
 
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
+    
+    # Enable Write-Ahead Logging (WAL) for high concurrency (infinite concurrent readers)
+    cursor.execute("PRAGMA journal_mode = WAL")
+    cursor.execute("PRAGMA synchronous = NORMAL")
+    cursor.execute("PRAGMA cache_size = -32000")
     
     # Users table
     cursor.execute("""
@@ -48,6 +54,13 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES users(id)
     )
     """)
+    
+    # High concurrency indexes
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_role_points ON users(role, points DESC, time_spent_seconds ASC)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_reg ON users(reg_number)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions(user_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_challenge_id ON submissions(challenge_id)")
     
     # Challenges custom overrides/additions table (for admin editing)
     cursor.execute("""
@@ -203,17 +216,25 @@ def init_db():
     conn.commit()
     conn.close()
 
+_cached_global_unlocked = None
+
 def get_global_unlocked_status() -> bool:
+    global _cached_global_unlocked
+    if _cached_global_unlocked is not None:
+        return _cached_global_unlocked
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT value FROM competition_config WHERE key = 'global_challenges_unlocked'")
     row = cursor.fetchone()
     conn.close()
     if row:
-        return row["value"] == "1"
-    return False
+        _cached_global_unlocked = (row["value"] == "1")
+    else:
+        _cached_global_unlocked = False
+    return _cached_global_unlocked
 
 def set_global_unlocked_status(unlocked: bool) -> bool:
+    global _cached_global_unlocked
     conn = get_connection()
     cursor = conn.cursor()
     val = "1" if unlocked else "0"
@@ -223,6 +244,7 @@ def set_global_unlocked_status(unlocked: bool) -> bool:
     """, (val,))
     conn.commit()
     conn.close()
+    _cached_global_unlocked = unlocked
     return unlocked
 
 if __name__ == "__main__":

@@ -1,9 +1,13 @@
 import json
 import sqlite3
+import os
 from datetime import datetime
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status
@@ -11,7 +15,10 @@ from executor import execute_user_code, test_user_solution
 
 app = FastAPI(title="SPIDER-CODE ARENA API", version="2.0.0")
 
-# Enable CORS for frontend Vite dev server
+# Enable high-throughput GZip compression for LAN bandwidth efficiency
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Enable CORS for cross-origin LAN clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -825,4 +832,28 @@ def update_challenge(challenge_id: int, upd: ChallengeUpdate):
         conn.commit()
     conn.close()
     return {"status": "success", "message": "Challenge updated successfully."}
+
+# --- Production Static File Serving & SPA Fallback for LAN Clients ---
+DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+
+if os.path.exists(DIST_DIR):
+    assets_dir = os.path.join(DIST_DIR, "assets")
+    badges_dir = os.path.join(DIST_DIR, "badges")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    if os.path.exists(badges_dir):
+        app.mount("/badges", StaticFiles(directory=badges_dir), name="badges")
+
+    @app.get("/{full_path:path}")
+    def serve_spa(full_path: str):
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+        target = os.path.join(DIST_DIR, full_path)
+        if full_path and os.path.exists(target) and os.path.isfile(target):
+            return FileResponse(target)
+        index_file = os.path.join(DIST_DIR, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Frontend production build not found. Please run 'npm run build'.")
+
 

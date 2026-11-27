@@ -5,6 +5,10 @@ import time
 import ast
 import tempfile
 import os
+import threading
+
+# Throttle concurrent subprocess executions to protect host CPU and RAM under 60-user load
+EXECUTION_SEMAPHORE = threading.Semaphore(8)
 
 DANGEROUS_MODULES = ["os", "subprocess", "sys", "shutil", "socket", "http", "urllib", "requests", "pathlib"]
 
@@ -54,23 +58,24 @@ def run_isolated_python(script_content: str, timeout: float = 4.0, skip_safety_c
         f.write(script_content)
         temp_path = f.name
 
-    start_time = time.perf_counter()
     try:
-        process = subprocess.run(
-            [sys.executable, temp_path],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-        )
-        elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
-        return {
-            "success": process.returncode == 0,
-            "stdout": process.stdout,
-            "stderr": process.stderr,
-            "exit_code": process.returncode,
-            "runtime_ms": elapsed_ms
-        }
+        with EXECUTION_SEMAPHORE:
+            start_time = time.perf_counter()
+            process = subprocess.run(
+                [sys.executable, temp_path],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+            elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
+            return {
+                "success": process.returncode == 0,
+                "stdout": process.stdout,
+                "stderr": process.stderr,
+                "exit_code": process.returncode,
+                "runtime_ms": elapsed_ms
+            }
     except subprocess.TimeoutExpired:
         return {
             "success": False,

@@ -75,7 +75,7 @@ export function App() {
           }
         }).catch(() => {});
       }
-    }, 3000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [user?.id, user?.points, user?.role]);
 
