@@ -87,11 +87,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
+      if (!name.trim()) {
+        throw new Error('Please enter your Student Name.');
+      }
+      if (!regNumber.trim()) {
+        throw new Error('Please enter your Student Register Number.');
+      }
+      if (!email.trim()) {
+        throw new Error('Please enter your Gmail / College Email ID.');
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        throw new Error('Please enter a valid Gmail / Email address (e.g. student@gmail.com).');
+      }
       if (!password) {
         throw new Error('Please enter your Security Passcode.');
-      }
-      if (!name && !regNumber && !email) {
-        throw new Error('Please enter your Student Name or Register Number.');
       }
 
       const inputUsername = (name || regNumber || email).trim();
@@ -300,10 +310,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   </div>
                 </div>
 
-                {/* College Email ID */}
+                {/* College Email / Gmail ID */}
                 <div>
                   <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                    College Email ID <span className="text-slate-500 font-normal">(Optional)</span>
+                    College Email / Gmail ID <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -311,9 +321,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                     </div>
                     <input
                       type="email"
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@spiderverse.edu"
+                      placeholder="e.g. student@gmail.com"
                       className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
                     />
                   </div>
