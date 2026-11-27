@@ -19,8 +19,7 @@ import {
   Shield,
   ArrowRight,
   Cpu,
-  Layers,
-  ShieldAlert
+  Layers
 } from 'lucide-react';
 import { Challenge, SubmissionResponse, TestResult, User } from '../types';
 import { api } from '../utils/api';
@@ -361,12 +360,12 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
           </div>
 
           <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${isUserFinished
-              ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-              : globalUnlocked
-                ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
-                : competitionTimer > 0
-                  ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-                  : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+            ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+            : globalUnlocked
+              ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
+              : competitionTimer > 0
+                ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
             }`}>
             <Clock className={`w-4 h-4 ${isUserFinished ? 'text-emerald-400' : globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'
               }`} />
@@ -533,12 +532,6 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                 <div className="px-3 py-1 rounded-xl bg-[#080B18] border border-[#00F0FF]/40 text-[#00F0FF] font-mono text-xs font-bold flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
                   <span>solution.py</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                </div>
-
-                {/* Anti-Cheat Badge */}
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 font-mono text-[10px] font-bold tracking-wider">
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-                  <span>ANTI-CHEAT: COPY & PASTE DISABLED</span>
                 </div>
               </div>
 
