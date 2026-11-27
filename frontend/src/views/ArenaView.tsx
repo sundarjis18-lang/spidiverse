@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import confetti from 'canvas-confetti';
-import { 
-  Play, 
-  Send, 
-  RotateCcw, 
-  Clock, 
-  CheckCircle2, 
-  Lock, 
-  XCircle, 
-  AlertCircle, 
-  Lightbulb, 
-  Flame, 
-  ChevronLeft, 
-  Terminal as TerminalIcon, 
-  Check, 
-  Sparkles, 
-  Shield, 
+import {
+  Play,
+  Send,
+  RotateCcw,
+  Clock,
+  CheckCircle2,
+  Lock,
+  XCircle,
+  AlertCircle,
+  Lightbulb,
+  Flame,
+  ChevronLeft,
+  Terminal as TerminalIcon,
+  Check,
+  Sparkles,
+  Shield,
   ArrowRight,
   Cpu,
   Layers
@@ -71,7 +71,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
   const [activeBottomTab, setActiveBottomTab] = useState<'tests' | 'terminal'>('tests');
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Execution outputs
   const [terminalOutput, setTerminalOutput] = useState<string>('Spider-Verse Python 3.12 Holographic Compiler Online.\nReady for isolated execution...\n');
   const [testResults, setTestResults] = useState<TestResult[]>([]);
@@ -221,7 +221,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
   return (
     <div className="p-4 sm:p-6 flex flex-col h-[calc(100vh-64px)] max-w-[1700px] mx-auto overflow-hidden">
-      
+
       {/* Top Holographic Navigation Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-3">
@@ -238,13 +238,12 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
               <span className="text-xs font-mono font-bold text-slate-400">
                 CHECKPOINT #{String(challenge.id).padStart(2, '0')}
               </span>
-              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider ${
-                challenge.difficulty === 'Beginner'
+              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider ${challenge.difficulty === 'Beginner'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
                   : challenge.difficulty === 'Intermediate'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
-                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/50'
-              }`}>
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/50'
+                }`}>
                 {challenge.difficulty}
               </span>
               {isBoss && (
@@ -273,11 +272,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
         {/* Right Info: Points & Countdown Timer */}
         <div className="flex items-center gap-3">
-          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${
-            hintsUsed > 0 
-              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300' 
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${hintsUsed > 0
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
               : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
-          }`}>
+            }`}>
             <Flame className="w-4 h-4 fill-current" />
             <span>+{currentPotentialReward} Points</span>
             {hintsUsed > 0 && (
@@ -296,7 +294,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
       {/* Main Holographic Workspace Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden pt-3">
-        
+
         {/* LEFT PANEL: Mission Specs & Lore */}
         <div className="lg:col-span-5 flex flex-col glass-panel rounded-3xl border border-slate-800 overflow-hidden h-[360px] lg:h-auto">
           <div className="px-5 py-3 bg-[#10182B]/90 border-b border-slate-800 flex items-center justify-between">
@@ -426,10 +424,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
         {/* RIGHT PANEL: Holographic Code Editor & Execution Console */}
         <div className="lg:col-span-7 flex flex-col gap-3 h-[600px] lg:h-full">
-          
+
           {/* Editor Container with Holographic Neon Frame (Matching Reference Panel 3) */}
           <div className="flex-1 flex flex-col rounded-3xl glass-panel border border-[#087CFF]/40 shadow-[0_0_30px_rgba(8,124,255,0.2)] overflow-hidden min-h-[300px] relative">
-            
+
             {/* Editor Toolbar with Floating File Tabs */}
             <div className="px-4 py-2.5 bg-[#10182B]/90 border-b border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
@@ -438,7 +436,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 </div>
-                
+
                 {/* Active File Tab */}
                 <div className="px-3 py-1 rounded-xl bg-[#080B18] border border-[#00F0FF]/40 text-[#00F0FF] font-mono text-xs font-bold flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
                   <span>solution.py</span>
@@ -517,18 +515,17 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
           {/* BOTTOM PANEL: Holographic Console */}
           <div className="h-[240px] lg:h-[260px] rounded-3xl glass-panel border border-slate-800 flex flex-col overflow-hidden shrink-0">
-            
+
             {/* Header Tabs */}
             <div className="px-4 py-2 bg-[#10182B]/90 border-b border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveBottomTab('tests')}
-                  className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${
-                    activeBottomTab === 'tests'
+                  className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${activeBottomTab === 'tests'
                       ? 'bg-[#087CFF]/20 text-[#00F0FF] border border-[#087CFF]/60 shadow-[0_0_10px_rgba(8,124,255,0.3)]'
                       : 'text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Test Vectors ({passedCount}/{totalCount})</span>
@@ -537,11 +534,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveBottomTab('terminal')}
-                  className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${
-                    activeBottomTab === 'terminal'
+                  className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${activeBottomTab === 'terminal'
                       ? 'bg-[#F52245]/20 text-[#F52245] border border-[#F52245]/60 shadow-[0_0_10px_rgba(245,34,69,0.3)]'
                       : 'text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <TerminalIcon className="w-3.5 h-3.5" />
                   <span>Console Telemetry</span>
@@ -596,11 +592,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                     testResults.map((r, idx) => (
                       <div
                         key={idx}
-                        className={`p-3 rounded-2xl border transition-all ${
-                          r.passed
+                        className={`p-3 rounded-2xl border transition-all ${r.passed
                             ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
                             : 'bg-rose-950/20 border-rose-500/40 text-rose-200'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
@@ -613,9 +608,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                               Vector #{idx + 1} {r.hidden && '(Encrypted Hidden Test)'}
                             </span>
                           </div>
-                          <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                            r.passed ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
-                          }`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${r.passed ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                            }`}>
                             {r.passed ? 'PASS' : 'FAIL'}
                           </span>
                         </div>
