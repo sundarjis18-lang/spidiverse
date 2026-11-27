@@ -33,6 +33,7 @@ import { api } from '../utils/api';
 import { sounds } from '../utils/soundEffects';
 import { INITIAL_CHALLENGES } from '../utils/mockData';
 import { AdminSection } from '../components/AdminSidebar';
+import { formatCompetitionTimer } from '../utils/timer';
 
 interface AdminViewProps {
   user?: User | null;
@@ -41,6 +42,8 @@ interface AdminViewProps {
   onRefreshChallenges: () => void;
   activeSection?: AdminSection;
   setActiveSection?: (section: AdminSection) => void;
+  competitionTimer?: number;
+  onTimerReset?: () => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -49,7 +52,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
   challenges,
   onRefreshChallenges,
   activeSection: propActiveSection,
-  setActiveSection: propSetActiveSection
+  setActiveSection: propSetActiveSection,
+  competitionTimer = 0,
+  onTimerReset
 }) => {
   const [internalSection, setInternalSection] = useState<AdminSection>('controls');
   const activeSection = propActiveSection || internalSection;
@@ -143,11 +148,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
       if (action === 'unlock') {
         await api.unlockAllChallenges();
         sounds.playSuccess();
-        setStatusMsg('GLOBAL ARENA UNLOCKED: All 10 challenges are now unlocked and playable for all registered students.');
+        onTimerReset?.();
+        setStatusMsg('GLOBAL ARENA UNLOCKED: All 10 challenges are now unlocked and competition timer has started.');
       } else {
         await api.lockAllChallenges();
         sounds.playWebShoot();
-        setStatusMsg('GLOBAL ARENA LOCKED: All 10 challenges have been frozen. Existing scores and progress preserved.');
+        onTimerReset?.();
+        setStatusMsg('GLOBAL ARENA LOCKED: All 10 challenges have been frozen and timer reset to 00:00.');
       }
       await loadData();
       onRefreshChallenges();
@@ -366,6 +373,17 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       </>
                     )}
                   </span>
+
+                  {/* Real-time Global Competition Arena Timer */}
+                  <span className={`px-3 py-1 rounded-full font-mono text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                    isUnlocked
+                      ? 'bg-purple-950/80 border-purple-500/60 text-cyan-300 shadow-[0_0_15px_rgba(139,53,255,0.4)]'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-400'
+                  }`}>
+                    <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
+                    <span>TIMER: {formatCompetitionTimer(isUnlocked ? competitionTimer : 0)}</span>
+                  </span>
+
                   <span className="text-xs font-mono text-slate-400">10 Challenges Governed</span>
                 </div>
 

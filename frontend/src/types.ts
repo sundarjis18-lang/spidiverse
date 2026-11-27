@@ -125,8 +125,10 @@ export interface StudentProfileData {
 
 export interface CompetitionStatus {
   unlocked: boolean;
-  status: 'UNLOCKED' | 'LOCKED';
+  status: 'UNLOCKED' | 'LOCKED' | string;
   message: string;
+  start_time?: number;
+  elapsed_seconds?: number;
 }
 
 export interface AdminStudent {

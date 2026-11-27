@@ -25,10 +25,13 @@ import { Challenge, SubmissionResponse, TestResult, User } from '../types';
 import { api } from '../utils/api';
 import { sounds } from '../utils/soundEffects';
 import { QUEST_BADGES } from '../utils/badges';
+import { formatCompetitionTimer } from '../utils/timer';
 
 interface ArenaViewProps {
   user: User;
   challenge: Challenge;
+  globalUnlocked?: boolean;
+  competitionTimer?: number;
   onBackToDashboard: () => void;
   onChallengeCompleted: (challengeId: number, points: number) => void;
   onNextChallenge: (nextId: number) => void;
@@ -37,6 +40,8 @@ interface ArenaViewProps {
 export const ArenaView: React.FC<ArenaViewProps> = ({
   user,
   challenge,
+  globalUnlocked = true,
+  competitionTimer = 0,
   onBackToDashboard,
   onChallengeCompleted,
   onNextChallenge
@@ -285,9 +290,13 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
             )}
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold flex items-center gap-1.5">
-            <Clock className="w-4 h-4" />
-            <span>{formatTimer(timeLeft)}</span>
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${
+            globalUnlocked
+              ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
+              : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+          }`}>
+            <Clock className={`w-4 h-4 ${globalUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
+            <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
           </div>
         </div>
       </div>

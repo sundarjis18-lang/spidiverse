@@ -12,30 +12,25 @@ import {
 import { Challenge, User } from '../types';
 import { sounds } from '../utils/soundEffects';
 import { QUEST_BADGES, QuestBadgeInfo } from '../utils/badges';
+import { formatCompetitionTimer } from '../utils/timer';
 
 interface DashboardViewProps {
   user: User;
   challenges: Challenge[];
   globalUnlocked?: boolean;
+  competitionTimer?: number;
   onSelectChallenge: (challengeId: number) => void;
   onOpenProgression: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   user,
+  challenges,
   globalUnlocked = true,
+  competitionTimer = 0,
   onOpenProgression
 }) => {
-  const [sessionSeconds, setSessionSeconds] = useState(user.time_spent_seconds || 480);
   const [selectedBadgeModal, setSelectedBadgeModal] = useState<QuestBadgeInfo | null>(null);
-
-  // Live timer ticker
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSessionSeconds(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const totalPoints = user?.points || 0;
   const completedCount = user?.completed_challenges?.length || 0;
@@ -86,12 +81,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Active Combat Timer */}
         <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-purple-500/30 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-            <Clock className="w-6 h-6" />
+            <Clock className={`w-6 h-6 ${globalUnlocked ? 'animate-pulse text-purple-400' : 'text-slate-600'}`} />
           </div>
           <div>
             <p className="text-[10px] font-mono text-slate-400 uppercase">Mission Timer</p>
-            <p className="text-xl font-heading font-bold text-white mt-0.5 font-mono">
-              {formatTimer(sessionSeconds)}
+            <p className={`text-xl font-heading font-bold mt-0.5 font-mono ${
+              globalUnlocked ? 'text-white' : 'text-slate-500'
+            }`}>
+              {formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}
             </p>
           </div>
         </div>

@@ -6,13 +6,16 @@ import {
   RefreshCw,
   Lock,
   Unlock,
-  Radio
+  Radio,
+  Clock
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { formatCompetitionTimer } from '../utils/timer';
 
 interface AdminHeaderProps {
   activeSectionTitle: string;
   isUnlocked: boolean;
+  competitionTimer?: number;
   onRefresh: () => void;
   soundMuted: boolean;
   setSoundMuted: (muted: boolean) => void;
@@ -22,6 +25,7 @@ interface AdminHeaderProps {
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   activeSectionTitle,
   isUnlocked,
+  competitionTimer = 0,
   onRefresh,
   soundMuted,
   setSoundMuted,
@@ -66,6 +70,16 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               <span>ARENA: LOCKED</span>
             </>
           )}
+        </div>
+
+        {/* Live Contest Timer Pill */}
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${
+          isUnlocked
+            ? 'bg-purple-950/70 border-purple-500/50 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.3)]'
+            : 'bg-slate-900/80 border-slate-700 text-slate-400'
+        }`}>
+          <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
+          <span>{formatCompetitionTimer(isUnlocked ? competitionTimer : 0)}</span>
         </div>
 
         {/* Live Sync Pulse */}

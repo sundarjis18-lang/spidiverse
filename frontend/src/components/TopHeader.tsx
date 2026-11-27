@@ -7,24 +7,30 @@ import {
   Flame,
   Zap,
   Sparkles,
-  Shield
+  Shield,
+  Clock
 } from 'lucide-react';
 import { User } from '../types';
 import { SPIDER_AVATARS } from '../utils/mockData';
 import { sounds } from '../utils/soundEffects';
+import { formatCompetitionTimer } from '../utils/timer';
 
 interface TopHeaderProps {
   user: User;
   onOpenProfile: () => void;
   soundMuted: boolean;
   setSoundMuted: (muted: boolean) => void;
+  competitionTimer?: number;
+  globalUnlocked?: boolean;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
   user,
   onOpenProfile,
   soundMuted,
-  setSoundMuted
+  setSoundMuted,
+  competitionTimer = 0,
+  globalUnlocked = true
 }) => {
   const avatarInfo = (user && user.avatar && SPIDER_AVATARS[user.avatar]) || SPIDER_AVATARS.classic;
 
@@ -49,8 +55,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         />
       </div>
 
-      {/* Right Controls: Points, Audio, Notifications, Profile */}
+      {/* Right Controls: Points, Timer, Audio, Notifications, Profile */}
       <div className="flex items-center gap-3.5 ml-auto">
+
+        {/* Global Competition Timer Pill */}
+        <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${
+          globalUnlocked
+            ? 'bg-[#10182B] border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+            : 'bg-[#10182B] border-slate-800 text-slate-500'
+        }`}>
+          <Clock className={`w-3.5 h-3.5 ${globalUnlocked ? 'text-[#00F0FF] animate-pulse' : 'text-slate-600'}`} />
+          <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
+          {!globalUnlocked && (
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-950/60 text-rose-400 border border-rose-800/40 font-mono">
+              LOCKED
+            </span>
+          )}
+        </div>
 
         {/* Points Pill */}
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#10182B] border border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.15)]">

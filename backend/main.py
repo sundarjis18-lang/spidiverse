@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status
+from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status, get_competition_time_info
 from executor import execute_user_code, test_user_solution
 
 app = FastAPI(title="SPIDER-CODE ARENA API", version="2.0.0")
@@ -260,20 +260,25 @@ def verify_session(user_id: int):
 
 @app.get("/api/competition/status")
 def get_competition_status():
-    unlocked = get_global_unlocked_status()
+    unlocked, start_ts, elapsed = get_competition_time_info()
     return {
         "unlocked": unlocked,
         "status": "UNLOCKED" if unlocked else "LOCKED",
-        "message": "All 10 challenges are unlocked and live for competition." if unlocked else "All challenges are currently locked by the Overseer."
+        "message": "All 10 challenges are unlocked and live for competition." if unlocked else "All challenges are currently locked by the Overseer.",
+        "start_time": start_ts,
+        "elapsed_seconds": elapsed
     }
 
 @app.post("/api/admin/competition/unlock")
 def admin_unlock_all():
     set_global_unlocked_status(True)
+    unlocked, start_ts, elapsed = get_competition_time_info()
     return {
         "status": "success",
         "unlocked": True,
-        "message": "All 10 challenges unlocked globally for all participants."
+        "start_time": start_ts,
+        "elapsed_seconds": 0,
+        "message": "All 10 challenges unlocked globally for all participants. Competition timer started."
     }
 
 @app.post("/api/admin/competition/lock")
@@ -282,7 +287,9 @@ def admin_lock_all():
     return {
         "status": "success",
         "unlocked": False,
-        "message": "All 10 challenges locked globally. Existing student scores and progress preserved."
+        "start_time": 0,
+        "elapsed_seconds": 0,
+        "message": "All 10 challenges locked globally. Competition timer reset to 00:00."
     }
 
 # --- Challenges Endpoints ---

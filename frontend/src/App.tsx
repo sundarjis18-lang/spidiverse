@@ -23,6 +23,7 @@ export function App() {
   // Always show login page first on link open, then transition to dashboard
   const [user, setUser] = useState<User | null>(null);
   const [globalUnlocked, setGlobalUnlocked] = useState<boolean>(true);
+  const [competitionTimer, setCompetitionTimer] = useState<number>(0);
   const [adminSection, setAdminSection] = useState<AdminSection>('controls');
   const [previewPlayerMode, setPreviewPlayerMode] = useState<boolean>(false);
 
@@ -62,6 +63,17 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (!globalUnlocked) {
+      setCompetitionTimer(0);
+      return;
+    }
+    const ticker = setInterval(() => {
+      setCompetitionTimer(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(ticker);
+  }, [globalUnlocked]);
+
+  useEffect(() => {
     loadChallenges();
     const timer = setInterval(() => {
       loadChallenges(true);
@@ -87,6 +99,17 @@ export function App() {
       ]);
       if (statusData && typeof statusData.unlocked === 'boolean') {
         setGlobalUnlocked(statusData.unlocked);
+        if (!statusData.unlocked) {
+          setCompetitionTimer(0);
+        } else if (typeof statusData.elapsed_seconds === 'number') {
+          setCompetitionTimer(prev => {
+            const serverSec = statusData.elapsed_seconds!;
+            if (Math.abs(prev - serverSec) > 2) {
+              return serverSec;
+            }
+            return prev;
+          });
+        }
       }
       if (data && Array.isArray(data) && data.length > 0) {
         setChallenges(data.map(normalizeChallenge));
@@ -210,6 +233,7 @@ export function App() {
                     adminSection === 'participants' ? 'Participants' : 'Live Leaderboard'
               }
               isUnlocked={globalUnlocked}
+              competitionTimer={competitionTimer}
               onRefresh={loadChallenges}
               soundMuted={soundMuted}
               setSoundMuted={setSoundMuted}
@@ -231,6 +255,8 @@ export function App() {
                 onRefreshChallenges={loadChallenges}
                 activeSection={adminSection}
                 setActiveSection={setAdminSection}
+                competitionTimer={competitionTimer}
+                onTimerReset={() => setCompetitionTimer(0)}
               />
             </main>
           </div>
@@ -283,6 +309,8 @@ export function App() {
                 onOpenProfile={() => setActiveTab('profile')}
                 soundMuted={soundMuted}
                 setSoundMuted={setSoundMuted}
+                competitionTimer={competitionTimer}
+                globalUnlocked={globalUnlocked}
               />
 
               {/* Player Views Content Router */}
@@ -292,6 +320,7 @@ export function App() {
                     user={user}
                     challenges={safeChallenges}
                     globalUnlocked={globalUnlocked}
+                    competitionTimer={competitionTimer}
                     onSelectChallenge={handleSelectChallenge}
                     onOpenProgression={() => setActiveTab('progression')}
                   />
@@ -299,6 +328,8 @@ export function App() {
                   <ArenaView
                     user={user}
                     challenge={activeChallenge}
+                    globalUnlocked={globalUnlocked}
+                    competitionTimer={competitionTimer}
                     onBackToDashboard={() => setActiveTab('dashboard')}
                     onChallengeCompleted={handleChallengeCompleted}
                     onNextChallenge={handleNextChallenge}

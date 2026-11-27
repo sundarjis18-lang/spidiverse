@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import os
+import time
 from datetime import datetime
 from challenges_data import CHALLENGES
 
@@ -223,34 +224,60 @@ def init_db():
     conn.close()
 
 _cached_global_unlocked = None
+_cached_start_timestamp = None
+
+def get_competition_time_info():
+    global _cached_global_unlocked, _cached_start_timestamp
+    if _cached_global_unlocked is not None and _cached_start_timestamp is not None:
+        unlocked = _cached_global_unlocked
+        start_ts = _cached_start_timestamp
+    else:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM competition_config WHERE key IN ('global_challenges_unlocked', 'competition_start_time')")
+        rows = {r["key"]: r["value"] for r in cursor.fetchall()}
+        conn.close()
+        unlocked = (rows.get("global_challenges_unlocked") == "1")
+        _cached_global_unlocked = unlocked
+        try:
+            start_val = rows.get("competition_start_time")
+            start_ts = float(start_val) if start_val and start_val != '0' else 0.0
+        except Exception:
+            start_ts = 0.0
+        _cached_start_timestamp = start_ts
+
+    if unlocked and start_ts > 0:
+        elapsed = max(0, int(time.time() - start_ts))
+    else:
+        elapsed = 0
+    return unlocked, start_ts, elapsed
 
 def get_global_unlocked_status() -> bool:
-    global _cached_global_unlocked
-    if _cached_global_unlocked is not None:
-        return _cached_global_unlocked
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT value FROM competition_config WHERE key = 'global_challenges_unlocked'")
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        _cached_global_unlocked = (row["value"] == "1")
-    else:
-        _cached_global_unlocked = False
-    return _cached_global_unlocked
+    unlocked, _, _ = get_competition_time_info()
+    return unlocked
 
 def set_global_unlocked_status(unlocked: bool) -> bool:
-    global _cached_global_unlocked
+    global _cached_global_unlocked, _cached_start_timestamp
     conn = get_connection()
     cursor = conn.cursor()
     val = "1" if unlocked else "0"
+    current_time = time.time() if unlocked else 0.0
+    start_val = str(current_time) if unlocked else "0"
+
     cursor.execute("""
         INSERT INTO competition_config (key, value) VALUES ('global_challenges_unlocked', ?)
         ON CONFLICT(key) DO UPDATE SET value = excluded.value
     """, (val,))
+
+    cursor.execute("""
+        INSERT INTO competition_config (key, value) VALUES ('competition_start_time', ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    """, (start_val,))
+
     conn.commit()
     conn.close()
     _cached_global_unlocked = unlocked
+    _cached_start_timestamp = current_time
     return unlocked
 
 if __name__ == "__main__":
