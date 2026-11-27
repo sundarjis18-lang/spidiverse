@@ -55,18 +55,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div>
         <div
           onClick={() => { sounds.playWebShoot(); setActiveTab('dashboard'); }}
-          className="p-5 flex items-center gap-3 cursor-pointer group border-b border-slate-800/80"
+          className="p-4 sm:p-5 flex items-center gap-3 cursor-pointer group border-b border-slate-800/80 hover:bg-slate-900/40 transition-colors"
         >
-          <div className="relative w-11 h-11 rounded-2xl p-1 bg-gradient-to-br from-[#F52245] via-[#8B35FF] to-[#087CFF] shadow-[0_0_20px_rgba(245,34,69,0.5)] group-hover:scale-105 transition-all">
-            <img src="/spider_emblem.jpg" alt="Logo" className="w-full h-full object-cover rounded-xl" />
+          <div className="relative w-11 h-11 rounded-2xl p-1 bg-gradient-to-br from-[#087CFF] via-[#00F0FF] to-[#8B35FF] shadow-[0_0_20px_rgba(8,124,255,0.4)] group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.6)] transition-all flex items-center justify-center shrink-0">
+            <div className="w-full h-full bg-black rounded-xl p-0.5 flex items-center justify-center overflow-hidden">
+              <img src="/pyrank_icon.png" alt="PyRank Logo" className="w-full h-full object-contain" />
+            </div>
           </div>
           <div>
-            <span className="font-heading font-black text-xl tracking-wider bg-gradient-to-r from-[#F52245] via-white to-[#087CFF] bg-clip-text text-transparent block">
-              SPIDER-CODE
+            <span className="font-heading font-black text-lg tracking-wider bg-gradient-to-r from-white via-[#00F0FF] to-[#087CFF] bg-clip-text text-transparent block leading-tight">
+              PYRANK
             </span>
-            <span className="text-[10px] font-mono text-slate-400 tracking-widest uppercase flex items-center gap-1.5">
+            <span className="text-[10px] font-mono text-slate-400 tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              ARENA PROTOCOL
+              SPIDER-CODE
             </span>
           </div>
         </div>

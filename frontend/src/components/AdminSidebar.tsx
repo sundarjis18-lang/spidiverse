@@ -37,16 +37,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       {/* Top Header & Navigation Items */}
       <div className="flex flex-col">
         {/* Brand / Title Banner */}
-        <div className="p-5 border-b border-slate-800/60 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-purple-950/80 border border-purple-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(139,53,255,0.4)]">
-            <Shield className="w-4 h-4 text-purple-400" />
+        <div className="p-4 sm:p-5 border-b border-slate-800/60 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-black border border-[#087CFF]/50 flex items-center justify-center shadow-[0_0_15px_rgba(8,124,255,0.4)] p-0.5 shrink-0">
+            <img src="/pyrank_icon.png" alt="PyRank" className="w-full h-full object-contain" />
           </div>
           <div>
-            <span className="font-heading font-black text-sm tracking-wider text-white block">
-              SPIDER-CODE
+            <span className="font-heading font-black text-sm tracking-wider bg-gradient-to-r from-white via-[#00F0FF] to-[#087CFF] bg-clip-text text-transparent block leading-tight">
+              PYRANK
             </span>
-            <span className="text-[10px] font-mono text-purple-400 font-bold tracking-widest uppercase block">
-              ADMIN ARENA
+            <span className="text-[10px] font-mono text-purple-400 font-bold tracking-widest uppercase block mt-0.5">
+              SPIDER-CODE ADMIN
             </span>
           </div>
         </div>
