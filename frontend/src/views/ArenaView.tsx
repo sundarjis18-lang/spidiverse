@@ -244,10 +244,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                 CHECKPOINT #{String(challenge.id).padStart(2, '0')}
               </span>
               <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider ${challenge.difficulty === 'Beginner'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
-                  : challenge.difficulty === 'Intermediate'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
-                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/50'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                : challenge.difficulty === 'Intermediate'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
+                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/50'
                 }`}>
                 {challenge.difficulty}
               </span>
@@ -278,8 +278,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
         {/* Right Info: Points & Countdown Timer */}
         <div className="flex items-center gap-3">
           <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${hintsUsed > 0
-              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-              : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+            ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+            : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
             }`}>
             <Flame className="w-4 h-4 fill-current" />
             <span>+{currentPotentialReward} Points</span>
@@ -290,11 +290,10 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
             )}
           </div>
 
-          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${
-            globalUnlocked
+          <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${globalUnlocked
               ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
               : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
-          }`}>
+            }`}>
             <Clock className={`w-4 h-4 ${globalUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
             <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
           </div>
@@ -532,8 +531,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   type="button"
                   onClick={() => setActiveBottomTab('tests')}
                   className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${activeBottomTab === 'tests'
-                      ? 'bg-[#087CFF]/20 text-[#00F0FF] border border-[#087CFF]/60 shadow-[0_0_10px_rgba(8,124,255,0.3)]'
-                      : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#087CFF]/20 text-[#00F0FF] border border-[#087CFF]/60 shadow-[0_0_10px_rgba(8,124,255,0.3)]'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -544,8 +543,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                   type="button"
                   onClick={() => setActiveBottomTab('terminal')}
                   className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${activeBottomTab === 'terminal'
-                      ? 'bg-[#F52245]/20 text-[#F52245] border border-[#F52245]/60 shadow-[0_0_10px_rgba(245,34,69,0.3)]'
-                      : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#F52245]/20 text-[#F52245] border border-[#F52245]/60 shadow-[0_0_10px_rgba(245,34,69,0.3)]'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   <TerminalIcon className="w-3.5 h-3.5" />
@@ -602,8 +601,8 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
                       <div
                         key={idx}
                         className={`p-3 rounded-2xl border transition-all ${r.passed
-                            ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-                            : 'bg-rose-950/20 border-rose-500/40 text-rose-200'
+                          ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
+                          : 'bg-rose-950/20 border-rose-500/40 text-rose-200'
                           }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">

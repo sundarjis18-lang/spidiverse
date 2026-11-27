@@ -80,7 +80,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ user }) => {
             LEADERBOARD
           </h1>
           <p className="mt-2 text-slate-300 font-mono text-xs sm:text-sm max-w-xl mx-auto">
-            Live rankings calculated by total quantum points, nodes restored, and debugging execution velocity.
+            Live rankings calculated by total quantum points and nodes restored.
           </p>
         </div>
 
@@ -148,7 +148,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ user }) => {
                 <th className="py-4 px-6">Player Name</th>
                 <th className="py-4 px-6">Register Number</th>
                 <th className="py-4 px-6 text-center">Nodes Cleared</th>
-                <th className="py-4 px-6 text-right">Completion Time</th>
                 <th className="py-4 px-6 text-right">Score</th>
               </tr>
             </thead>
@@ -218,11 +217,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ user }) => {
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
                         {entry.completed_count} / 10
                       </span>
-                    </td>
-
-                    {/* Completion Time */}
-                    <td className="py-4 px-6 text-right text-slate-300">
-                      {entry.completion_time}
                     </td>
 
                     {/* Score */}

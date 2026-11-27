@@ -85,9 +85,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div>
             <p className="text-[10px] font-mono text-slate-400 uppercase">Mission Timer</p>
-            <p className={`text-xl font-heading font-bold mt-0.5 font-mono ${
-              globalUnlocked ? 'text-white' : 'text-slate-500'
-            }`}>
+            <p className={`text-xl font-heading font-bold mt-0.5 font-mono ${globalUnlocked ? 'text-white' : 'text-slate-500'
+              }`}>
               {formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}
             </p>
           </div>
@@ -139,20 +138,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div
                 key={badge.id}
                 onClick={() => { sounds.playWebShoot(); setSelectedBadgeModal(badge); }}
-                className={`p-2.5 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-between cursor-pointer group text-center relative ${
-                  isCompleted
+                className={`p-2.5 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-between cursor-pointer group text-center relative ${isCompleted
                     ? 'bg-[#10182B] border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:border-emerald-400 hover:scale-105'
                     : 'bg-[#080B18]/60 border-slate-800/80 hover:border-slate-700 opacity-60 hover:opacity-100'
-                }`}
+                  }`}
               >
                 {/* Badge Image */}
                 <div className="relative w-16 h-18 sm:w-18 sm:h-20 my-1 flex items-center justify-center">
                   <img
                     src={badge.image}
                     alt={badge.title}
-                    className={`w-full h-full object-contain filter ${
-                      isCompleted ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'grayscale contrast-75'
-                    }`}
+                    className={`w-full h-full object-contain filter ${isCompleted ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'grayscale contrast-75'
+                      }`}
                   />
                   {!isCompleted && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -166,9 +163,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="text-[10px] font-mono font-bold block text-white truncate">
                     #{String(badge.id).padStart(2, '0')}
                   </span>
-                  <span className={`text-[9px] font-mono font-bold block truncate mt-0.5 ${
-                    isCompleted ? 'text-emerald-400' : 'text-slate-500'
-                  }`}>
+                  <span className={`text-[9px] font-mono font-bold block truncate mt-0.5 ${isCompleted ? 'text-emerald-400' : 'text-slate-500'
+                    }`}>
                     {isCompleted ? 'UNLOCKED' : 'LOCKED'}
                   </span>
                 </div>
@@ -187,16 +183,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <h3 className="font-heading text-lg font-bold text-white tracking-wide flex items-center gap-2">
               <span>WEB MATRIX ARENA ACCESS</span>
-              <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                globalUnlocked 
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+              <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${globalUnlocked
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                   : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-              }`}>
+                }`}>
                 {globalUnlocked ? 'ARENA READY' : 'FROZEN BY OVERSEER'}
               </span>
             </h3>
             <p className="text-xs font-mono text-slate-400 mt-1 max-w-xl leading-relaxed">
-              {globalUnlocked 
+              {globalUnlocked
                 ? 'All 10 dimensional coding nodes are accessible on the Web Matrix navigation grid. Select any checkpoint to solve Python debugging quests.'
                 : 'The competition arena is currently locked by the Overseer. Checkpoint nodes will unlock simultaneously when the competition begins.'}
             </p>

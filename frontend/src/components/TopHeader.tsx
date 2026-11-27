@@ -59,11 +59,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       <div className="flex items-center gap-3.5 ml-auto">
 
         {/* Global Competition Timer Pill */}
-        <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${
-          globalUnlocked
+        <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${globalUnlocked
             ? 'bg-[#10182B] border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
             : 'bg-[#10182B] border-slate-800 text-slate-500'
-        }`}>
+          }`}>
           <Clock className={`w-3.5 h-3.5 ${globalUnlocked ? 'text-[#00F0FF] animate-pulse' : 'text-slate-600'}`} />
           <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
           {!globalUnlocked && (
