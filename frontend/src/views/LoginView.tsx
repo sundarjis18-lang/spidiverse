@@ -242,14 +242,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                     setAdminModalUser('');
                     setAdminModalPass('');
                   }}
-                  className="w-12 h-12 rounded-2xl p-1 bg-gradient-to-br from-[#F52245] to-[#087CFF] shadow-[0_0_20px_rgba(245,34,69,0.5)] cursor-pointer select-none active:scale-95 transition-transform"
-                  title="Spider-Verse Core"
+                  className="w-12 h-12 rounded-2xl p-2 bg-[#080B18] border border-[#00F0FF]/50 shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer select-none active:scale-95 transition-transform flex items-center justify-center hover:border-[#00F0FF] hover:shadow-[0_0_25px_rgba(0,240,255,0.6)]"
+                  title="PyRank Admin Protocol"
                 >
-                  <img src="/spider_emblem.jpg" alt="Spider" className="w-full h-full object-cover rounded-xl pointer-events-none" />
+                  <img src="/pyrank_icon.png" alt="PyRank" className="w-full h-full object-contain pointer-events-none" />
                 </div>
                 <div>
-                  <h3 className="font-heading text-xl sm:text-2xl font-black text-white">
-                    ARENA DISPATCH
+                  <h3 className="font-heading text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-[#00F0FF] tracking-wider">
+                    PYRANK
                   </h3>
                   <p className="text-[11px] font-mono text-slate-400">
                     Enter security clearance token
