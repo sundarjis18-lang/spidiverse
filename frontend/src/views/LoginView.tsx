@@ -275,130 +275,121 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5">
-                {/* Student Name */}
-                <div>
-                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                    Student Name <span className="text-slate-500 font-normal">(Full Name)</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <UserIcon className="w-4 h-4 text-[#087CFF]" />
-                    </div>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Peter Parker"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                    />
+              {/* Student Name */}
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                  Student Name <span className="text-slate-500 font-normal">(Full Name)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <UserIcon className="w-4 h-4 text-[#087CFF]" />
                   </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Peter Parker"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                  />
                 </div>
+              </div>
 
-                {/* Student Register Number */}
-                <div>
-                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                    Student Register Number <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Hash className="w-4 h-4 text-[#087CFF]" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={regNumber}
-                      onChange={(e) => setRegNumber(e.target.value)}
-                      placeholder="e.g. RA2111003010142"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                    />
+              {/* Student Register Number */}
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                  Student Register Number <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Hash className="w-4 h-4 text-[#087CFF]" />
                   </div>
+                  <input
+                    type="text"
+                    required
+                    value={regNumber}
+                    onChange={(e) => setRegNumber(e.target.value)}
+                    placeholder="e.g. RA2111003010142"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                  />
                 </div>
+              </div>
 
-                {/* Department */}
-                <div>
-                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                    Department <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <GraduationCap className="w-4 h-4 text-[#087CFF]" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      placeholder="e.g. CSE / IT / AI&DS / ECE"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                    />
+              {/* Department */}
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                  Department <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <GraduationCap className="w-4 h-4 text-[#087CFF]" />
                   </div>
+                  <input
+                    type="text"
+                    required
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="e.g. CSE / IT / AI&DS / ECE"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#087CFF] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                  />
                 </div>
+              </div>
 
-                {/* College Email / Gmail ID */}
-                <div>
-                  <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
-                    College Email / Gmail ID <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Mail className="w-4 h-4 text-[#087CFF]" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. student@gmail.com"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                    />
+              {/* College Email / Gmail ID */}
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                  College Email / Gmail ID <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="w-4 h-4 text-[#087CFF]" />
                   </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. student@gmail.com"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                  />
                 </div>
+              </div>
 
-                {/* Security Passcode / Password */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase">
-                      Security Passcode / Password <span className="text-rose-400">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgot(true)}
-                      className="text-[11px] text-[#087CFF] hover:text-[#00F0FF] transition-colors font-mono"
-                    >
-                      Forgot?
-                    </button>
+              {/* Security Passcode / Password */}
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-slate-300 mb-1 uppercase">
+                  Security Passcode / Password <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Lock className="w-4 h-4 text-[#087CFF]" />
                   </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Lock className="w-4 h-4 text-[#087CFF]" />
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
-                    />
-                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#080B18]/90 border border-slate-700 focus:border-[#F52245] text-xs text-white placeholder-slate-500 outline-none font-mono"
+                  />
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-4 py-3 px-6 rounded-xl font-heading font-bold text-xs tracking-wider uppercase text-white bg-gradient-to-r from-[#F52245] via-[#8B35FF] to-[#087CFF] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(245,34,69,0.4)] flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" />
-                      <span>ACCESS MISSION CONTROL</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-4 py-3 px-6 rounded-xl font-heading font-bold text-xs tracking-wider uppercase text-white bg-gradient-to-r from-[#F52245] via-[#8B35FF] to-[#087CFF] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(245,34,69,0.4)] flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>ACCESS MISSION CONTROL</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
           </div>
         </div>
