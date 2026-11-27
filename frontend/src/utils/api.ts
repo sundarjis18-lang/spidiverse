@@ -580,7 +580,7 @@ export const api = {
     try {
       const res = await fetch(`${BASE_URL}/admin/smtp/config`);
       if (res.ok) return await res.json();
-    } catch (err) {}
+    } catch (err) { }
     return {
       status: 'success',
       smtp_host: 'smtp.gmail.com',

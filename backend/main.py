@@ -416,9 +416,9 @@ def send_certificate_email(req: EmailCertificateRequest):
     cfg = get_smtp_config()
     smtp_host = cfg["smtp_host"]
     smtp_port = cfg["smtp_port"]
-    smtp_user = cfg["smtp_user"]
+    smtp_user = cfg["smtp_user"] or "251300588077@srcas.ac.in"
     smtp_pass = cfg["smtp_pass"]
-    smtp_from = cfg["smtp_from"] or smtp_user or "pyrank.arena@gmail.com"
+    smtp_from = cfg["smtp_from"] or f"PyRank Arena <{smtp_user}>"
 
     # Always log to outbox
     outbox_dir = os.path.join(os.path.dirname(__file__), "email_outbox")
