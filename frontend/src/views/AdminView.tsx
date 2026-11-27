@@ -26,7 +26,8 @@ import {
   ChevronUp,
   Eye,
   SlidersHorizontal,
-  Check
+  Check,
+  FileSpreadsheet
 } from 'lucide-react';
 import { AdminOverviewData, Challenge, LeaderboardEntry, User } from '../types';
 import { api } from '../utils/api';
@@ -230,6 +231,84 @@ export const AdminView: React.FC<AdminViewProps> = ({
     } finally {
       setLoadingAction(false);
     }
+  };
+
+  // Export all participant details into an Excel/Sheets-compatible spreadsheet (.csv format) and trigger instant download
+  const handleExportSheet = () => {
+    if (!overview || !overview.students || overview.students.length === 0) {
+      sounds.playError();
+      setStatusMsg('ERROR: No participant records found to export into sheet.');
+      setTimeout(() => setStatusMsg(''), 4000);
+      return;
+    }
+
+    sounds.playWebShoot();
+
+    const escapeCsv = (val: any): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const headers = [
+      "Sl No",
+      "Student Cadet Name",
+      "College Register No",
+      "Department",
+      "College Email / Gmail ID",
+      "Registration Date & Time",
+      "Account / Arena Status",
+      "Nodes Cleared (Challenges)",
+      "Total Score (PTS)",
+      "Completion Time",
+      "Time Spent (Seconds)",
+      "Completed Challenge IDs"
+    ];
+
+    const rows = overview.students.map((student, idx) => {
+      const isFinished = student.completed_count >= 10;
+      const timeDisplay = isFinished
+        ? (student.time_spent || formatCompetitionTimer(student.time_spent_seconds || 0))
+        : formatCompetitionTimer(competitionTimer);
+      const completedIdsStr = student.completed_ids && student.completed_ids.length > 0
+        ? student.completed_ids.join('; ')
+        : 'None';
+
+      return [
+        idx + 1,
+        student.name,
+        student.reg_number,
+        student.department || 'General',
+        student.email,
+        student.registration_date || student.created_at || 'Registered',
+        student.account_status || (isFinished ? 'Completed (10/10)' : student.completed_count > 0 ? `In Arena (${student.completed_count}/10)` : 'Standby'),
+        `${student.completed_count} / 10`,
+        student.points,
+        timeDisplay,
+        student.time_spent_seconds || 0,
+        completedIdsStr
+      ].map(escapeCsv).join(',');
+    });
+
+    // \uFEFF Byte Order Mark ensures Microsoft Excel & Google Sheets correctly decode UTF-8 characters
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    link.href = url;
+    link.setAttribute('download', `PyRank_Participants_Directory_${dateStr}_${timeStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    sounds.playSuccess();
+    setStatusMsg(`SHEET DOWNLOADED: Saved ${overview.students.length} participant records to your system.`);
+    setTimeout(() => setStatusMsg(''), 4500);
   };
 
   // If not admin, enforce Overseer Security Gate
@@ -713,6 +792,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#10182B] border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:border-blue-400 outline-none"
                 />
               </div>
+
+              {/* SHEETS BUTTON */}
+              <button
+                type="button"
+                disabled={!overview || overview.students.length === 0}
+                onClick={handleExportSheet}
+                className="px-4 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider bg-emerald-950/70 hover:bg-emerald-600 border border-emerald-500/60 hover:border-emerald-400 text-emerald-200 hover:text-white transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 whitespace-nowrap active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                title="Save all participant details into an Excel/Google Sheets compatible spreadsheet and download to your system"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400 group-hover:text-white" />
+                <span>SHEETS</span>
+              </button>
 
               {/* RESET ALL PLAYERS BUTTON */}
               <button

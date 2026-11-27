@@ -546,6 +546,10 @@ export const api = {
     };
   },
 
+  getExportParticipantsSheetUrl(): string {
+    return `${BASE_URL}/admin/participants/export`;
+  },
+
   // Admin Overview
   async getAdminOverview(): Promise<AdminOverviewData> {
     try {

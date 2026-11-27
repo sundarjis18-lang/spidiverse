@@ -261,16 +261,14 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
         {/* Live Status Badge */}
         <div className="flex items-center gap-2">
           <div
-            className={`px-4 py-2 rounded-2xl font-mono text-xs font-bold flex items-center gap-2.5 border transition-all ${
-              isOpen
+            className={`px-4 py-2 rounded-2xl font-mono text-xs font-bold flex items-center gap-2.5 border transition-all ${isOpen
                 ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
                 : 'bg-rose-950/70 border-rose-500/60 text-rose-300 shadow-[0_0_20px_rgba(245,34,69,0.35)]'
-            }`}
+              }`}
           >
             <span
-              className={`w-2 h-2 rounded-full ${
-                isOpen ? 'bg-emerald-400 animate-ping' : 'bg-rose-400'
-              }`}
+              className={`w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-400 animate-ping' : 'bg-rose-400'
+                }`}
             ></span>
             <span>{isOpen ? 'CERTIFICATES STATUS: OPEN (LIVE)' : 'CERTIFICATES STATUS: CLOSED (HIDDEN)'}</span>
           </div>
@@ -285,11 +283,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
             sounds.playWebShoot();
             setActiveTab('control');
           }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider transition-all ${
-            activeTab === 'control'
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'control'
               ? 'bg-gradient-to-r from-[#087CFF] to-[#00F0FF] text-black shadow-[0_0_20px_rgba(8,124,255,0.4)]'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-          }`}
+            }`}
         >
           <Award className="w-4 h-4" />
           <span>Certificate Access (Open / Close)</span>
@@ -301,11 +298,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
             sounds.playWebShoot();
             setActiveTab('studio');
           }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider transition-all ${
-            activeTab === 'studio'
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'studio'
               ? 'bg-gradient-to-r from-[#F52245] via-purple-600 to-[#8B35FF] text-white shadow-[0_0_20px_rgba(245,34,69,0.4)]'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-          }`}
+            }`}
         >
           <Sliders className="w-4 h-4" />
           <span>Certificate Generation Studio</span>
@@ -315,11 +311,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       {/* Feedback Toast */}
       {feedbackMsg && (
         <div
-          className={`p-4 rounded-2xl border text-xs font-mono flex items-center gap-2.5 animate-in fade-in ${
-            isOpen
+          className={`p-4 rounded-2xl border text-xs font-mono flex items-center gap-2.5 animate-in fade-in ${isOpen
               ? 'bg-emerald-950/90 border-emerald-500 text-emerald-200 shadow-[0_0_25px_rgba(16,185,129,0.3)]'
               : 'bg-amber-950/90 border-amber-500 text-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.3)]'
-          }`}
+            }`}
         >
           {isOpen ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> : <Lock className="w-4 h-4 text-amber-400 shrink-0" />}
           <span>{feedbackMsg}</span>
@@ -348,11 +343,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
 
               {/* Status Pill */}
               <div
-                className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 border ${
-                  isOpen
+                className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 border ${isOpen
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                     : 'bg-rose-500/20 text-rose-300 border-rose-500/60 shadow-[0_0_15px_rgba(245,34,69,0.4)]'
-                }`}
+                  }`}
               >
                 {isOpen ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 <span>{isOpen ? 'VISIBILITY: OPEN' : 'VISIBILITY: CLOSED'}</span>
@@ -363,11 +357,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               {/* Option 1: OPEN Card */}
               <div
-                className={`rounded-3xl p-6 border-2 transition-all flex flex-col justify-between space-y-5 ${
-                  isOpen
+                className={`rounded-3xl p-6 border-2 transition-all flex flex-col justify-between space-y-5 ${isOpen
                     ? 'bg-gradient-to-br from-emerald-950/60 via-[#0b281f] to-[#080B18] border-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.3)]'
                     : 'bg-[#080B18]/60 border-slate-800 hover:border-emerald-500/50'
-                }`}
+                  }`}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -395,11 +388,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                   type="button"
                   disabled={loading || isOpen}
                   onClick={handleOpenCertificates}
-                  className={`w-full py-3.5 px-6 rounded-2xl font-heading font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                    isOpen
+                  className={`w-full py-3.5 px-6 rounded-2xl font-heading font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isOpen
                       ? 'bg-emerald-950/40 text-emerald-500 border border-emerald-500/30 cursor-default'
                       : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:brightness-110 active:scale-95 text-black shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer'
-                  }`}
+                    }`}
                 >
                   <Unlock className="w-4 h-4" />
                   <span>{isOpen ? 'CERTIFICATES ALREADY OPEN' : 'CLICK TO OPEN CERTIFICATES'}</span>
@@ -408,11 +400,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
 
               {/* Option 2: CLOSE Card */}
               <div
-                className={`rounded-3xl p-6 border-2 transition-all flex flex-col justify-between space-y-5 ${
-                  !isOpen
+                className={`rounded-3xl p-6 border-2 transition-all flex flex-col justify-between space-y-5 ${!isOpen
                     ? 'bg-gradient-to-br from-rose-950/60 via-[#2a0e16] to-[#080B18] border-rose-500 shadow-[0_0_40px_rgba(245,34,69,0.3)]'
                     : 'bg-[#080B18]/60 border-slate-800 hover:border-rose-500/50'
-                }`}
+                  }`}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -440,11 +431,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                   type="button"
                   disabled={loading || !isOpen}
                   onClick={handleCloseCertificates}
-                  className={`w-full py-3.5 px-6 rounded-2xl font-heading font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                    !isOpen
+                  className={`w-full py-3.5 px-6 rounded-2xl font-heading font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${!isOpen
                       ? 'bg-rose-950/40 text-rose-500 border border-rose-500/30 cursor-default'
                       : 'bg-gradient-to-r from-[#F52245] via-rose-600 to-red-700 hover:brightness-110 active:scale-95 text-white shadow-[0_0_25px_rgba(245,34,69,0.4)] cursor-pointer'
-                  }`}
+                    }`}
                 >
                   <Lock className="w-4 h-4" />
                   <span>{!isOpen ? 'CERTIFICATES ALREADY CLOSED' : 'CLICK TO CLOSE CERTIFICATES'}</span>
@@ -474,7 +464,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               <div className="px-3 py-2 text-slate-500 rounded-xl">Dashboard</div>
               <div className="px-3 py-2 text-slate-500 rounded-xl">Web Matrix</div>
               <div className="px-3 py-2 text-slate-500 rounded-xl">Rankings</div>
-              
+
               {isOpen ? (
                 <div className="px-3 py-2 bg-gradient-to-r from-cyan-950/80 to-[#087CFF]/20 text-cyan-300 border border-cyan-500/60 rounded-xl font-bold flex items-center justify-between shadow-[0_0_15px_rgba(0,240,255,0.25)] animate-in fade-in">
                   <div className="flex items-center gap-2">
@@ -536,33 +526,30 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setCertType('participation')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${
-                    certType === 'participation'
+                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'participation'
                       ? 'bg-cyan-950/80 border-[#00F0FF] text-cyan-300'
                       : 'bg-[#080B18] border-slate-700 text-slate-400'
-                  }`}
+                    }`}
                 >
                   Participation
                 </button>
                 <button
                   type="button"
                   onClick={() => setCertType('merit')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${
-                    certType === 'merit'
+                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'merit'
                       ? 'bg-amber-950/80 border-amber-500 text-amber-300'
                       : 'bg-[#080B18] border-slate-700 text-slate-400'
-                  }`}
+                    }`}
                 >
                   Merit
                 </button>
                 <button
                   type="button"
                   onClick={() => setCertType('completion')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${
-                    certType === 'completion'
+                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'completion'
                       ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300'
                       : 'bg-[#080B18] border-slate-700 text-slate-400'
-                  }`}
+                    }`}
                 >
                   10/10 Master
                 </button>
@@ -680,8 +667,8 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                   {certType === 'merit'
                     ? 'CERTIFICATE OF MERIT & EXCELLENCE'
                     : certType === 'completion'
-                    ? 'CERTIFICATE OF QUANTUM MASTERY'
-                    : 'CERTIFICATE OF PARTICIPATION'}
+                      ? 'CERTIFICATE OF QUANTUM MASTERY'
+                      : 'CERTIFICATE OF PARTICIPATION'}
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest block">
                   THIS IS PROUDLY PRESENTED TO

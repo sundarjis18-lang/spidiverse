@@ -1,13 +1,15 @@
 import json
 import sqlite3
 import os
+import io
+import csv
 from datetime import datetime
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 from database import (
@@ -907,6 +909,85 @@ def admin_overview():
         "pass_rate": round((passed_sub_count / max(1, sub_count)) * 100, 1),
         "students": students
     }
+
+@app.get("/api/admin/participants/export")
+def export_participants_sheet():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.id, u.name, u.email, u.reg_number, u.department, u.points, u.completed_challenges, u.time_spent_seconds, u.created_at
+        FROM users u WHERE u.role = 'student'
+        ORDER BY u.points DESC, u.time_spent_seconds ASC, u.id ASC
+    """)
+    students = cursor.fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    output.write('\ufeff')
+    writer = csv.writer(output)
+    writer.writerow([
+        "Sl No",
+        "Student Cadet Name",
+        "College Register No",
+        "Department",
+        "College Email",
+        "Registration Date",
+        "Arena Status",
+        "Nodes Cleared",
+        "Total Score (PTS)",
+        "Completion Time",
+        "Time Spent (Seconds)",
+        "Completed Challenge IDs"
+    ])
+    
+    _, _, current_competition_elapsed = get_competition_time_info()
+    
+    for idx, s in enumerate(students, 1):
+        completed = []
+        if s["completed_challenges"]:
+            try:
+                completed = json.loads(s["completed_challenges"]) if isinstance(s["completed_challenges"], str) else s["completed_challenges"]
+            except:
+                completed = []
+        
+        is_finished = len(completed) >= 10
+        if is_finished:
+            status = "Completed (10/10)"
+            t_sec = s["time_spent_seconds"] if s["time_spent_seconds"] else 0
+        elif len(completed) > 0 or s["points"] > 0:
+            status = f"In Arena ({len(completed)}/10)"
+            t_sec = current_competition_elapsed
+        else:
+            status = "Standby (Registered)"
+            t_sec = current_competition_elapsed
+            
+        time_display = format_time(t_sec)
+        dept = s["department"] if "department" in s.keys() and s["department"] else "General"
+        
+        writer.writerow([
+            idx,
+            s["name"],
+            s["reg_number"],
+            dept,
+            s["email"],
+            s["created_at"] or "",
+            status,
+            f"{len(completed)} / 10",
+            s["points"],
+            time_display,
+            t_sec,
+            "; ".join(str(cid) for cid in completed) if completed else "None"
+        ])
+        
+    csv_bytes = output.getvalue().encode('utf-8-sig')
+    filename = f"pyrank_participants_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        content=csv_bytes,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )
 
 @app.post("/api/admin/students/{user_id}/reset")
 def reset_student_progress(user_id: int):
