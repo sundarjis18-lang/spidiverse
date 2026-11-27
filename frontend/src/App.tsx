@@ -164,7 +164,7 @@ export function App() {
     setActiveTab('arena');
   };
 
-  const handleChallengeCompleted = (challengeId: number, points: number) => {
+  const handleChallengeCompleted = (challengeId: number, questPoints: number, overallPenalty: number = 0, newTotalPoints?: number) => {
     if (!user) return;
 
     const currentCompleted = user.completed_challenges || [];
@@ -172,9 +172,13 @@ export function App() {
       ? currentCompleted
       : [...currentCompleted, challengeId];
 
+    const finalPoints = typeof newTotalPoints === 'number'
+      ? newTotalPoints
+      : Math.max(0, (user.points || 0) + questPoints - overallPenalty);
+
     const updatedUser: User = {
       ...user,
-      points: (user.points || 0) + points,
+      points: finalPoints,
       completed_challenges: newCompleted
     };
     setUser(updatedUser);

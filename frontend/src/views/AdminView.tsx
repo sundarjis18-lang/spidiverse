@@ -800,8 +800,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           {/* Completion Time */}
                           <td className="py-4 px-6 text-center text-slate-300 font-mono">
                             <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold ${isFinished
-                                ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
-                                : 'bg-slate-800/60 border border-slate-700/60 text-slate-300'
+                              ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                              : 'bg-slate-800/60 border border-slate-700/60 text-slate-300'
                               }`}>
                               <Clock className={`w-3.5 h-3.5 ${isFinished ? 'text-emerald-400' : 'text-cyan-400 animate-pulse'}`} />
                               <span>
@@ -966,8 +966,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           {/* Completion Time */}
                           <td className="py-4 px-6 text-center text-slate-300 font-mono">
                             <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold ${entry.is_finished || entry.completed_count >= 10
-                                ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
-                                : 'bg-[#10182B] border border-cyan-500/30 text-cyan-300'
+                              ? 'bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                              : 'bg-[#10182B] border border-cyan-500/30 text-cyan-300'
                               }`}>
                               <Clock className={`w-3.5 h-3.5 ${entry.is_finished || entry.completed_count >= 10 ? 'text-emerald-400' : 'text-cyan-400 animate-pulse'
                                 }`} />

@@ -65,6 +65,7 @@ export interface SubmissionResponse {
   base_points?: number;
   hints_used?: number;
   hint_penalty?: number;
+  total_points?: number;
   next_unlocked_challenge?: number | null;
   is_all_cleared?: boolean;
 }

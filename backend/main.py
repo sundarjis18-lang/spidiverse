@@ -541,13 +541,13 @@ def submit_solution(req: SubmitCodeRequest):
         if req.challenge_id not in completed_list:
             completed_list.append(req.challenge_id)
             
-            # Point reduction for hints: 10% penalty per revealed hint, min 50% points floor
-            hint_penalty = max(10, int(round(points * 0.10)))
-            total_reduction = hints_count * hint_penalty
-            min_points = int(points * 0.50)
-            points_awarded = max(min_points, points - total_reduction)
+            # Hint penalty: Do not lessen from that quest; lessen from the overall points
+            hint_penalty_per_hint = max(10, int(round(points * 0.10)))
+            total_reduction = hints_count * hint_penalty_per_hint
+            points_awarded = points  # Quest awards full points!
             
-            new_total_points = user["points"] + points_awarded
+            # Deduct hint penalty from overall total score
+            new_total_points = max(0, user["points"] + points_awarded - total_reduction)
             
             # If student finishes all 10 challenges, freeze their timing at current competition elapsed time!
             if len(completed_list) >= 10:
@@ -577,6 +577,7 @@ def submit_solution(req: SubmitCodeRequest):
         "base_points": points,
         "hints_used": hints_count,
         "hint_penalty": total_reduction,
+        "total_points": new_total_points if all_passed else (user["points"] or 0),
         "next_unlocked_challenge": new_unlocked,
         "is_all_cleared": (req.challenge_id == 10 and all_passed)
     }
