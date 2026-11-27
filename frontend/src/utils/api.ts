@@ -556,24 +556,68 @@ export const api = {
     cert_hash: string;
     png_base64?: string;
   }): Promise<{ status: string; message: string }> {
-    try {
-      const res = await fetch(`${BASE_URL}/certificates/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.detail || data.message || 'Failed to send certificate email.');
-    } catch (err: any) {
-      console.warn('Backend email endpoint offline or error, falling back:', err);
-      return {
-        status: 'success',
-        message: `Official certificate successfully sent to ${payload.recipient_email}!`
-      };
+    const res = await fetch(`${BASE_URL}/certificates/send-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      return await res.json();
     }
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || data.message || 'Failed to send certificate email.');
+  },
+
+  async getSmtpConfig(): Promise<{
+    status: string;
+    smtp_host: string;
+    smtp_port: number;
+    smtp_user: string;
+    smtp_pass_masked: string;
+    is_configured: boolean;
+    smtp_from: string;
+  }> {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/smtp/config`);
+      if (res.ok) return await res.json();
+    } catch (err) {}
+    return {
+      status: 'success',
+      smtp_host: 'smtp.gmail.com',
+      smtp_port: 587,
+      smtp_user: '',
+      smtp_pass_masked: '',
+      is_configured: false,
+      smtp_from: ''
+    };
+  },
+
+  async saveSmtpConfig(payload: {
+    smtp_host?: string;
+    smtp_port?: number;
+    smtp_user: string;
+    smtp_pass: string;
+    smtp_from?: string;
+  }): Promise<{ status: string; message: string; is_configured: boolean }> {
+    const res = await fetch(`${BASE_URL}/admin/smtp/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) return await res.json();
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || 'Failed to save SMTP config');
+  },
+
+  async testSmtpConfig(recipient_email: string): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${BASE_URL}/admin/smtp/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipient_email })
+    });
+    if (res.ok) return await res.json();
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || 'SMTP test failed');
   },
 
   getExportParticipantsSheetUrl(): string {

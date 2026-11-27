@@ -15,7 +15,8 @@ from pydantic import BaseModel
 from database import (
     get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status,
     get_competition_time_info, reset_competition_timer,
-    get_certificates_open_status, set_certificates_open_status
+    get_certificates_open_status, set_certificates_open_status,
+    get_smtp_config, set_smtp_config
 )
 from executor import execute_user_code, test_user_solution
 
@@ -82,6 +83,16 @@ class EmailCertificateRequest(BaseModel):
     cert_type: Optional[str] = "Participation"
     cert_hash: Optional[str] = None
     png_base64: Optional[str] = None
+
+class SmtpConfigRequest(BaseModel):
+    smtp_host: Optional[str] = "smtp.gmail.com"
+    smtp_port: Optional[int] = 587
+    smtp_user: str
+    smtp_pass: str
+    smtp_from: Optional[str] = None
+
+class TestEmailRequest(BaseModel):
+    recipient_email: str
 
 # --- Helper Functions ---
 
@@ -326,6 +337,63 @@ def admin_close_certificates():
         "message": "Certificates are now CLOSED and hidden from student dashboards."
     }
 
+@app.get("/api/admin/smtp/config")
+def get_smtp_configuration():
+    cfg = get_smtp_config()
+    masked_pass = ("•" * len(cfg["smtp_pass"])) if cfg["smtp_pass"] else ""
+    return {
+        "status": "success",
+        "smtp_host": cfg["smtp_host"],
+        "smtp_port": cfg["smtp_port"],
+        "smtp_user": cfg["smtp_user"],
+        "smtp_pass_masked": masked_pass,
+        "is_configured": bool(cfg["smtp_user"] and cfg["smtp_pass"]),
+        "smtp_from": cfg["smtp_from"]
+    }
+
+@app.post("/api/admin/smtp/config")
+def save_smtp_configuration(req: SmtpConfigRequest):
+    cfg = set_smtp_config(
+        host=req.smtp_host or "smtp.gmail.com",
+        port=req.smtp_port or 587,
+        user=req.smtp_user.strip(),
+        password=req.smtp_pass.strip(),
+        from_email=req.smtp_from or req.smtp_user.strip()
+    )
+    return {
+        "status": "success",
+        "message": "SMTP Email Configuration saved successfully.",
+        "is_configured": bool(cfg["smtp_user"] and cfg["smtp_pass"])
+    }
+
+@app.post("/api/admin/smtp/test")
+def test_smtp_configuration(req: TestEmailRequest):
+    cfg = get_smtp_config()
+    if not cfg["smtp_user"] or not cfg["smtp_pass"]:
+        raise HTTPException(status_code=400, detail="SMTP is not configured. Please enter a valid Sender Email and App Password first.")
+
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+
+        msg = MIMEText("This is an official test email from the PyRank Spider-Code Debugging Arena. Your SMTP configuration is working perfectly!", "plain")
+        msg["Subject"] = "PyRank Arena - SMTP Email Test Successful"
+        msg["From"] = cfg["smtp_from"] or cfg["smtp_user"]
+        msg["To"] = req.recipient_email
+
+        server = smtplib.SMTP(cfg["smtp_host"], cfg["smtp_port"], timeout=15)
+        server.starttls()
+        server.login(cfg["smtp_user"], cfg["smtp_pass"])
+        server.sendmail(msg["From"], [req.recipient_email], msg.as_string())
+        server.quit()
+
+        return {
+            "status": "success",
+            "message": f"Test email successfully delivered to {req.recipient_email}!"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SMTP test failed: {str(e)}")
+
 @app.post("/api/certificates/send-email")
 def send_certificate_email(req: EmailCertificateRequest):
     if not req.recipient_email or "@" not in req.recipient_email:
@@ -344,16 +412,23 @@ def send_certificate_email(req: EmailCertificateRequest):
     except Exception as e:
         print(f"Error updating user profile with certificate details: {e}")
 
-    # Check for SMTP configuration
-    smtp_host = os.environ.get("SMTP_HOST")
-    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
-    smtp_user = os.environ.get("SMTP_USER")
-    smtp_pass = os.environ.get("SMTP_PASS")
-    smtp_from = os.environ.get("SMTP_FROM", smtp_user or "pyrank.arena@gmail.com")
+    # Load SMTP configuration from SQLite / environment
+    cfg = get_smtp_config()
+    smtp_host = cfg["smtp_host"]
+    smtp_port = cfg["smtp_port"]
+    smtp_user = cfg["smtp_user"]
+    smtp_pass = cfg["smtp_pass"]
+    smtp_from = cfg["smtp_from"] or smtp_user or "pyrank.arena@gmail.com"
 
-    email_sent_via_smtp = False
+    # Always log to outbox
+    outbox_dir = os.path.join(os.path.dirname(__file__), "email_outbox")
+    os.makedirs(outbox_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_email = req.recipient_email.replace("@", "_at_").replace(".", "_")
+    log_file = os.path.join(outbox_dir, f"cert_{timestamp}_{safe_email}.json")
 
-    if smtp_host and smtp_user and smtp_pass:
+    # If SMTP is configured, send the actual email via smtplib!
+    if smtp_user and smtp_pass:
         try:
             import smtplib
             from email.mime.multipart import MIMEMultipart
@@ -398,36 +473,57 @@ def send_certificate_email(req: EmailCertificateRequest):
                 except Exception as ex:
                     print(f"Error attaching image to email: {ex}")
 
-            server = smtplib.SMTP(smtp_host, smtp_port)
+            server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
             server.starttls()
             server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_from, [req.recipient_email], msg.as_string())
             server.quit()
-            email_sent_via_smtp = True
+
+            with open(log_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "timestamp": datetime.now().isoformat(),
+                    "recipient_email": req.recipient_email,
+                    "student_name": req.student_name,
+                    "department": req.department,
+                    "reg_number": req.reg_number,
+                    "cert_type": req.cert_type,
+                    "cert_hash": req.cert_hash,
+                    "status": "SENT_VIA_SMTP"
+                }, f, indent=2)
+
+            return {
+                "status": "success",
+                "message": f"Official certificate successfully sent and delivered to {req.recipient_email}!"
+            }
         except Exception as e:
-            print(f"SMTP dispatch warning (falling back to outbox log): {e}")
+            err_msg = str(e)
+            with open(log_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "timestamp": datetime.now().isoformat(),
+                    "recipient_email": req.recipient_email,
+                    "error": err_msg,
+                    "status": "SMTP_ERROR"
+                }, f, indent=2)
+            raise HTTPException(status_code=500, detail=f"Email delivery failed: {err_msg}. Please check Gmail App Password in Admin Panel.")
 
-    outbox_dir = os.path.join(os.path.dirname(__file__), "email_outbox")
-    os.makedirs(outbox_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_email = req.recipient_email.replace("@", "_at_").replace(".", "_")
-    log_file = os.path.join(outbox_dir, f"cert_{timestamp}_{safe_email}.json")
-    with open(log_file, "w", encoding="utf-8") as f:
-        json.dump({
-            "timestamp": datetime.now().isoformat(),
-            "recipient_email": req.recipient_email,
-            "student_name": req.student_name,
-            "department": req.department,
-            "reg_number": req.reg_number,
-            "cert_type": req.cert_type,
-            "cert_hash": req.cert_hash,
-            "sent_via_smtp": email_sent_via_smtp
-        }, f, indent=2)
+    else:
+        # SMTP not configured - write outbox and raise clear instruction
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump({
+                "timestamp": datetime.now().isoformat(),
+                "recipient_email": req.recipient_email,
+                "student_name": req.student_name,
+                "department": req.department,
+                "reg_number": req.reg_number,
+                "cert_type": req.cert_type,
+                "cert_hash": req.cert_hash,
+                "status": "OUTBOX_ONLY_SMTP_NOT_CONFIGURED"
+            }, f, indent=2)
 
-    return {
-        "status": "success",
-        "message": f"Official certificate successfully sent to {req.recipient_email}!"
-    }
+        raise HTTPException(
+            status_code=400,
+            detail="SMTP Sender Email is not configured yet. Please configure the Sender Gmail and App Password in the Admin Panel to deliver real emails."
+        )
 
 @app.post("/api/admin/competition/unlock")
 def admin_unlock_all():

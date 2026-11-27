@@ -16,7 +16,8 @@ import {
   GraduationCap,
   X,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import { User } from '../types';
 import { api } from '../utils/api';
@@ -276,6 +277,33 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     }
   };
 
+  // Compose in Gmail / Webmail
+  const handleOpenInWebmail = () => {
+    sounds.playWebShoot();
+    const effectiveName = (studentName.trim() || user.name || 'Spider Cadet').toUpperCase();
+    const effectiveDept = department.trim() || user.department || 'Computer Science';
+    const subject = encodeURIComponent(`Official ${certType} Certificate - PyRank 2026: ${effectiveName}`);
+    const body = encodeURIComponent(
+`Dear ${effectiveName},
+
+Congratulations on your performance in the PyRank 2026: Spider-Code Python Debugging Arena!
+
+OFFICIAL CREDENTIAL DETAILS:
+• Cadet Name: ${effectiveName}
+• Department: Department of ${effectiveDept.toUpperCase()}
+• Register No: ${user.reg_number || 'RA0000'}
+• Credential: ${certTitle}
+• Authenticity Token: ${certHash}
+• Verification URL: https://pyrank.spiderverse.edu/verify
+
+Issued by:
+Programming Club & Department of Computer Science
+PyRank Sector 616`
+    );
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail || user.email || '')}&su=${subject}&body=${body}`;
+    window.open(gmailUrl, '_blank');
+  };
+
   const displayEffectiveName = (studentName.trim() || user.name || 'Spider Cadet').toUpperCase();
   const displayEffectiveDept = department.trim() || user.department || '';
 
@@ -338,10 +366,10 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
           ========================================================================= */}
       <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-[#087CFF]/30 bg-[#0A0F26]/90 shadow-[0_0_30px_rgba(8,124,255,0.15)] relative overflow-hidden">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-end justify-between gap-5">
-          
+
           {/* Input fields */}
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
+
             {/* Student Name Input */}
             <div>
               <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -404,7 +432,7 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
 
       {/* The Certificate Landscape Card (Printable) */}
       <div className="glass-panel w-full aspect-[1.55/1] rounded-3xl p-6 sm:p-10 border-2 border-[#00F0FF]/60 shadow-[0_0_60px_rgba(0,240,255,0.25)] relative overflow-hidden flex flex-col justify-between bg-gradient-to-br from-[#0c1630] via-[#080d22] to-[#040714] select-none">
-        
+
         {/* Inner Double Border Frame */}
         <div className="absolute inset-4 rounded-2xl border border-[#087CFF]/30 pointer-events-none"></div>
 
@@ -526,7 +554,7 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
       {emailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <div className="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 border-2 border-purple-500/60 shadow-[0_0_60px_rgba(139,53,255,0.4)] relative overflow-hidden bg-[#0A0E24]">
-            
+
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -615,32 +643,44 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setEmailModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                onClick={handleOpenInWebmail}
+                className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold text-cyan-300 hover:text-white bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                title="Compose and send via your browser's Gmail with prefilled certificate credentials"
               >
-                Cancel
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open in Gmail (Webmail)</span>
               </button>
-              <button
-                type="button"
-                disabled={isSending || !targetEmail.trim()}
-                onClick={handleSendEmail}
-                className="px-6 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 via-pink-600 to-[#F52245] hover:brightness-110 active:scale-95 text-white transition-all shadow-[0_0_20px_rgba(139,53,255,0.4)] flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              >
-                {isSending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>SENDING...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>DISPATCH TO EMAIL</span>
-                  </>
-                )}
-              </button>
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEmailModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSending || !targetEmail.trim()}
+                  onClick={handleSendEmail}
+                  className="px-6 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 via-pink-600 to-[#F52245] hover:brightness-110 active:scale-95 text-white transition-all shadow-[0_0_20px_rgba(139,53,255,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                >
+                  {isSending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>DISPATCHING...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>DISPATCH TO EMAIL</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

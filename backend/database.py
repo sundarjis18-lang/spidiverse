@@ -375,6 +375,40 @@ def set_certificates_open_status(open_status: bool) -> bool:
     conn.close()
     return open_status
 
+def get_smtp_config() -> dict:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM competition_config WHERE key IN ('smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from')")
+    rows = {r["key"]: r["value"] for r in cursor.fetchall()}
+    conn.close()
+
+    return {
+        "smtp_host": rows.get("smtp_host") or os.environ.get("SMTP_HOST", "smtp.gmail.com"),
+        "smtp_port": int(rows.get("smtp_port") or os.environ.get("SMTP_PORT", "587")),
+        "smtp_user": rows.get("smtp_user") or os.environ.get("SMTP_USER", ""),
+        "smtp_pass": rows.get("smtp_pass") or os.environ.get("SMTP_PASS", ""),
+        "smtp_from": rows.get("smtp_from") or os.environ.get("SMTP_FROM", "")
+    }
+
+def set_smtp_config(host: str, port: int, user: str, password: str, from_email: str = "") -> dict:
+    conn = get_connection()
+    cursor = conn.cursor()
+    configs = [
+        ('smtp_host', str(host)),
+        ('smtp_port', str(port)),
+        ('smtp_user', str(user)),
+        ('smtp_pass', str(password)),
+        ('smtp_from', str(from_email or user))
+    ]
+    for key, val in configs:
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """, (key, val))
+    conn.commit()
+    conn.close()
+    return get_smtp_config()
+
 if __name__ == "__main__":
     init_db()
     print("Database initialized successfully at", DB_PATH)
