@@ -75,6 +75,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
     open: false,
     action: null
   });
+  const [resetTimerModalOpen, setResetTimerModalOpen] = useState(false);
   const [resetAllModal, setResetAllModal] = useState(false);
   const [removePlayerModal, setRemovePlayerModal] = useState<{ open: boolean; player: { id: number; name: string; reg_number: string } | null }>({
     open: false,
@@ -148,13 +149,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
       if (action === 'unlock') {
         await api.unlockAllChallenges();
         sounds.playSuccess();
-        onTimerReset?.();
-        setStatusMsg('GLOBAL ARENA UNLOCKED: All 10 challenges are now unlocked and competition timer has started.');
+        setStatusMsg('GLOBAL ARENA UNLOCKED: All 10 challenges are now unlocked and competition timer is running.');
       } else {
         await api.lockAllChallenges();
         sounds.playWebShoot();
-        onTimerReset?.();
-        setStatusMsg('GLOBAL ARENA LOCKED: All 10 challenges have been frozen and timer reset to 00:00.');
+        setStatusMsg('GLOBAL ARENA LOCKED: All 10 challenges have been frozen. Competition timer frozen at current moment.');
       }
       await loadData();
       onRefreshChallenges();
@@ -162,6 +161,26 @@ export const AdminView: React.FC<AdminViewProps> = ({
     } catch (err: unknown) {
       sounds.playError();
       setStatusMsg(err instanceof Error ? err.message : 'Action failed.');
+      setTimeout(() => setStatusMsg(''), 5000);
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleResetCompetitionTimer = async () => {
+    setLoadingAction(true);
+    setResetTimerModalOpen(false);
+    try {
+      await api.resetCompetitionTimer();
+      sounds.playSuccess();
+      onTimerReset?.();
+      setStatusMsg('COMPETITION TIMER RESET: The timer has been successfully reset to 00:00.');
+      await loadData();
+      onRefreshChallenges();
+      setTimeout(() => setStatusMsg(''), 5000);
+    } catch (err: unknown) {
+      sounds.playError();
+      setStatusMsg(err instanceof Error ? err.message : 'Timer reset failed.');
       setTimeout(() => setStatusMsg(''), 5000);
     } finally {
       setLoadingAction(false);
@@ -364,10 +383,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                         <span>ARENA STATUS: UNLOCKED / LIVE</span>
                       </>
+                    ) : competitionTimer > 0 ? (
+                      <>
+                        <Lock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>ARENA STATUS: LOCKED / FROZEN</span>
+                      </>
                     ) : (
                       <>
                         <Lock className="w-3.5 h-3.5 text-rose-400" />
-                        <span>ARENA STATUS: LOCKED / STANDBY (PRIORLY LOCKED)</span>
+                        <span>ARENA STATUS: LOCKED / STANDBY</span>
                       </>
                     )}
                   </span>
@@ -375,10 +399,17 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   {/* Real-time Global Competition Arena Timer */}
                   <span className={`px-3 py-1 rounded-full font-mono text-xs font-bold flex items-center gap-1.5 border transition-all ${isUnlocked
                       ? 'bg-purple-950/80 border-purple-500/60 text-cyan-300 shadow-[0_0_15px_rgba(139,53,255,0.4)]'
-                      : 'bg-slate-900/80 border-slate-700 text-slate-400'
+                      : competitionTimer > 0
+                        ? 'bg-amber-950/80 border-amber-500/60 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                        : 'bg-slate-900/80 border-slate-700 text-slate-400'
                     }`}>
-                    <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
-                    <span>TIMER: {formatCompetitionTimer(isUnlocked ? competitionTimer : 0)}</span>
+                    <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+                    <span>TIMER: {formatCompetitionTimer(competitionTimer)}</span>
+                    <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                      isUnlocked ? 'bg-emerald-500/20 text-emerald-400' : competitionTimer > 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {isUnlocked ? 'RUNNING' : competitionTimer > 0 ? 'FROZEN' : 'STANDBY'}
+                    </span>
                   </span>
 
                   <span className="text-xs font-mono text-slate-400">10 Challenges Governed</span>
@@ -390,8 +421,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
                 <p className="text-xs font-mono text-slate-300 leading-relaxed">
                   {isUnlocked
-                    ? 'All 10 challenges are currently UNLOCKED across every student dashboard simultaneously. Cadets can play and submit solutions.'
-                    : 'All 10 challenges are PRIORLY LOCKED. Students cannot open or attempt any challenge until you click UNLOCK. Student scores and existing progress are safely preserved.'}
+                    ? 'All 10 challenges are currently UNLOCKED across every student dashboard simultaneously. Competition timer is live and ticking.'
+                    : competitionTimer > 0
+                      ? `All 10 challenges are FROZEN. Students cannot submit new solutions. Competition timer is paused at ${formatCompetitionTimer(competitionTimer)}.`
+                      : 'All 10 challenges are PRIORLY LOCKED. Students cannot open or attempt any challenge until you click UNLOCK.'}
                 </p>
               </div>
 
@@ -420,7 +453,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     }`}
                 >
                   <Lock className="w-4 h-4" />
-                  <span>LOCK ALL CHALLENGES</span>
+                  <span>LOCK (FREEZE TIME)</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loadingAction}
+                  onClick={() => setResetTimerModalOpen(true)}
+                  className="px-5 py-4 rounded-2xl font-heading font-black text-xs tracking-wider uppercase flex items-center justify-center gap-2 bg-[#10182B] hover:bg-slate-800/80 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 shadow-md transition-all active:scale-95"
+                  title="Reset arena competition timer back to 00:00"
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-400" />
+                  <span>RESET TIMER</span>
                 </button>
               </div>
 
@@ -961,6 +1005,52 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   }`}
               >
                 {lockModal.action === 'unlock' ? 'CONFIRM UNLOCK ALL' : 'CONFIRM LOCK ALL'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          CONFIRMATION MODAL: RESET TIMER TO 00:00
+          ========================================================================= */}
+      {resetTimerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 border-2 border-amber-500/60 shadow-[0_0_60px_rgba(245,158,11,0.3)] relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-950/80 border border-amber-500 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-amber-400 tracking-widest uppercase font-bold block">
+                  ARENA TIMER OVERRIDE
+                </span>
+                <h3 className="font-heading text-xl font-black text-white">
+                  Reset Arena Timer to 00:00?
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-xs font-mono text-slate-300 leading-relaxed mb-6">
+              This will immediately reset the global competition timer back to <strong>00:00</strong> across all 60 LAN student dashboards and admin monitors.
+              <br /><br />
+              <span className="text-emerald-400">✓ All student scores, badges, and code submissions are 100% preserved.</span>
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setResetTimerModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-mono transition-all"
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={handleResetCompetitionTimer}
+                className="px-6 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider text-black bg-gradient-to-r from-amber-400 to-yellow-500 hover:brightness-110 shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all active:scale-95"
+              >
+                CONFIRM RESET (00:00)
               </button>
             </div>
           </div>

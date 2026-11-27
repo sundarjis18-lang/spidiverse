@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status, get_competition_time_info
+from database import get_connection, init_db, get_global_unlocked_status, set_global_unlocked_status, get_competition_time_info, reset_competition_timer
 from executor import execute_user_code, test_user_solution
 
 app = FastAPI(title="SPIDER-CODE ARENA API", version="2.0.0")
@@ -277,19 +277,31 @@ def admin_unlock_all():
         "status": "success",
         "unlocked": True,
         "start_time": start_ts,
-        "elapsed_seconds": 0,
-        "message": "All 10 challenges unlocked globally for all participants. Competition timer started."
+        "elapsed_seconds": elapsed,
+        "message": "All 10 challenges unlocked globally for all participants. Competition timer active."
     }
 
 @app.post("/api/admin/competition/lock")
 def admin_lock_all():
     set_global_unlocked_status(False)
+    unlocked, start_ts, elapsed = get_competition_time_info()
     return {
         "status": "success",
         "unlocked": False,
         "start_time": 0,
+        "elapsed_seconds": elapsed,
+        "message": f"All 10 challenges locked globally. Competition timer frozen at {elapsed}s."
+    }
+
+@app.post("/api/admin/competition/reset-timer")
+def admin_reset_competition_timer():
+    unlocked, start_ts, elapsed = reset_competition_timer()
+    return {
+        "status": "success",
+        "unlocked": unlocked,
+        "start_time": start_ts,
         "elapsed_seconds": 0,
-        "message": "All 10 challenges locked globally. Competition timer reset to 00:00."
+        "message": "Competition timer successfully reset to 00:00."
     }
 
 # --- Challenges Endpoints ---

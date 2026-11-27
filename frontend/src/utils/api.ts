@@ -472,17 +472,32 @@ export const api = {
       const res = await fetch(`${BASE_URL}/admin/competition/lock`, { method: 'POST' });
       if (res.ok) {
         localStorage.setItem('spider_global_unlocked', '0');
-        localStorage.removeItem('spider_competition_start');
         return await res.json();
       }
     } catch (err) { }
     localStorage.setItem('spider_global_unlocked', '0');
-    localStorage.removeItem('spider_competition_start');
     return {
       status: 'success',
       unlocked: false,
+      message: 'All 10 challenges locked globally. Competition timer frozen at current moment.'
+    };
+  },
+
+  async resetCompetitionTimer(): Promise<{ status: string; unlocked: boolean; message: string; elapsed_seconds: number }> {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/competition/reset-timer`, { method: 'POST' });
+      if (res.ok) {
+        localStorage.setItem('spider_competition_elapsed', '0');
+        localStorage.setItem('spider_competition_start', String(Date.now()));
+        return await res.json();
+      }
+    } catch (err) { }
+    localStorage.setItem('spider_competition_elapsed', '0');
+    return {
+      status: 'success',
+      unlocked: localStorage.getItem('spider_global_unlocked') === '1',
       elapsed_seconds: 0,
-      message: 'All 10 challenges locked globally. Competition timer reset to 00:00.'
+      message: 'Competition timer successfully reset to 00:00.'
     };
   },
 

@@ -292,10 +292,17 @@ export const ArenaView: React.FC<ArenaViewProps> = ({
 
           <div className={`px-3 py-1.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 ${globalUnlocked
               ? 'bg-purple-950/60 border-purple-500/40 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.25)]'
-              : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+              : competitionTimer > 0
+                ? 'bg-amber-950/60 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
             }`}>
-            <Clock className={`w-4 h-4 ${globalUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
-            <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
+            <Clock className={`w-4 h-4 ${globalUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+            <span>{formatCompetitionTimer(competitionTimer)}</span>
+            {!globalUnlocked && (
+              <span className="text-[10px] font-normal uppercase tracking-wider ml-0.5">
+                {competitionTimer > 0 ? 'FROZEN' : 'LOCKED'}
+              </span>
+            )}
           </div>
         </div>
       </div>

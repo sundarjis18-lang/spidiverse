@@ -61,13 +61,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Global Competition Timer Pill */}
         <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border font-mono text-xs font-bold transition-all ${globalUnlocked
             ? 'bg-[#10182B] border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
-            : 'bg-[#10182B] border-slate-800 text-slate-500'
+            : competitionTimer > 0
+              ? 'bg-amber-950/40 border-amber-500/40 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+              : 'bg-[#10182B] border-slate-800 text-slate-500'
           }`}>
-          <Clock className={`w-3.5 h-3.5 ${globalUnlocked ? 'text-[#00F0FF] animate-pulse' : 'text-slate-600'}`} />
-          <span>{formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}</span>
+          <Clock className={`w-3.5 h-3.5 ${globalUnlocked ? 'text-[#00F0FF] animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-600'}`} />
+          <span>{formatCompetitionTimer(competitionTimer)}</span>
           {!globalUnlocked && (
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-950/60 text-rose-400 border border-rose-800/40 font-mono">
-              LOCKED
+            <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+              competitionTimer > 0 ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' : 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
+            }`}>
+              {competitionTimer > 0 ? 'FROZEN' : 'LOCKED'}
             </span>
           )}
         </div>

@@ -64,8 +64,7 @@ export function App() {
 
   useEffect(() => {
     if (!globalUnlocked) {
-      setCompetitionTimer(0);
-      return;
+      return; // Freeze timer at the current moment when locked
     }
     const ticker = setInterval(() => {
       setCompetitionTimer(prev => prev + 1);
@@ -99,16 +98,19 @@ export function App() {
       ]);
       if (statusData && typeof statusData.unlocked === 'boolean') {
         setGlobalUnlocked(statusData.unlocked);
-        if (!statusData.unlocked) {
-          setCompetitionTimer(0);
-        } else if (typeof statusData.elapsed_seconds === 'number') {
-          setCompetitionTimer(prev => {
-            const serverSec = statusData.elapsed_seconds!;
-            if (Math.abs(prev - serverSec) > 2) {
-              return serverSec;
-            }
-            return prev;
-          });
+        if (typeof statusData.elapsed_seconds === 'number') {
+          if (!statusData.unlocked) {
+            // When locked, freeze at server's exact elapsed time
+            setCompetitionTimer(statusData.elapsed_seconds);
+          } else {
+            setCompetitionTimer(prev => {
+              const serverSec = statusData.elapsed_seconds!;
+              if (Math.abs(prev - serverSec) > 2) {
+                return serverSec;
+              }
+              return prev;
+            });
+          }
         }
       }
       if (data && Array.isArray(data) && data.length > 0) {

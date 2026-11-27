@@ -80,14 +80,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Active Combat Timer */}
         <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-purple-500/30 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-            <Clock className={`w-6 h-6 ${globalUnlocked ? 'animate-pulse text-purple-400' : 'text-slate-600'}`} />
+          <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${
+            globalUnlocked
+              ? 'bg-purple-500/10 border-purple-500/40 text-purple-400'
+              : competitionTimer > 0
+                ? 'bg-amber-500/10 border-amber-500/40 text-amber-400'
+                : 'bg-slate-800/40 border-slate-700 text-slate-500'
+          }`}>
+            <Clock className={`w-6 h-6 ${globalUnlocked ? 'animate-pulse text-purple-400' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-600'}`} />
           </div>
           <div>
-            <p className="text-[10px] font-mono text-slate-400 uppercase">Mission Timer</p>
-            <p className={`text-xl font-heading font-bold mt-0.5 font-mono ${globalUnlocked ? 'text-white' : 'text-slate-500'
-              }`}>
-              {formatCompetitionTimer(globalUnlocked ? competitionTimer : 0)}
+            <p className="text-[10px] font-mono text-slate-400 uppercase">
+              {globalUnlocked ? 'Mission Timer' : competitionTimer > 0 ? 'Mission Timer (Frozen)' : 'Mission Timer (Standby)'}
+            </p>
+            <p className={`text-xl font-heading font-bold mt-0.5 font-mono ${
+              globalUnlocked ? 'text-white' : competitionTimer > 0 ? 'text-amber-300' : 'text-slate-500'
+            }`}>
+              {formatCompetitionTimer(competitionTimer)}
             </p>
           </div>
         </div>

@@ -76,10 +76,17 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${
           isUnlocked
             ? 'bg-purple-950/70 border-purple-500/50 text-cyan-300 shadow-[0_0_12px_rgba(139,53,255,0.3)]'
-            : 'bg-slate-900/80 border-slate-700 text-slate-400'
+            : competitionTimer > 0
+              ? 'bg-amber-950/70 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+              : 'bg-slate-900/80 border-slate-700 text-slate-400'
         }`}>
-          <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
-          <span>{formatCompetitionTimer(isUnlocked ? competitionTimer : 0)}</span>
+          <Clock className={`w-3.5 h-3.5 ${isUnlocked ? 'text-cyan-400 animate-pulse' : competitionTimer > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+          <span>{formatCompetitionTimer(competitionTimer)}</span>
+          {!isUnlocked && (
+            <span className="text-[9px] uppercase tracking-wider text-slate-400">
+              {competitionTimer > 0 ? '(FROZEN)' : '(00:00)'}
+            </span>
+          )}
         </div>
 
         {/* Live Sync Pulse */}

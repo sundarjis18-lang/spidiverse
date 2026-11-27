@@ -225,16 +225,18 @@ def init_db():
 
 _cached_global_unlocked = None
 _cached_start_timestamp = None
+_cached_accumulated_elapsed = None
 
 def get_competition_time_info():
-    global _cached_global_unlocked, _cached_start_timestamp
-    if _cached_global_unlocked is not None and _cached_start_timestamp is not None:
+    global _cached_global_unlocked, _cached_start_timestamp, _cached_accumulated_elapsed
+    if _cached_global_unlocked is not None and _cached_start_timestamp is not None and _cached_accumulated_elapsed is not None:
         unlocked = _cached_global_unlocked
         start_ts = _cached_start_timestamp
+        accumulated = _cached_accumulated_elapsed
     else:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT key, value FROM competition_config WHERE key IN ('global_challenges_unlocked', 'competition_start_time')")
+        cursor.execute("SELECT key, value FROM competition_config WHERE key IN ('global_challenges_unlocked', 'competition_start_time', 'competition_elapsed_seconds')")
         rows = {r["key"]: r["value"] for r in cursor.fetchall()}
         conn.close()
         unlocked = (rows.get("global_challenges_unlocked") == "1")
@@ -245,11 +247,20 @@ def get_competition_time_info():
         except Exception:
             start_ts = 0.0
         _cached_start_timestamp = start_ts
+        try:
+            acc_val = rows.get("competition_elapsed_seconds")
+            accumulated = int(float(acc_val)) if acc_val else 0
+        except Exception:
+            accumulated = 0
+        _cached_accumulated_elapsed = accumulated
 
     if unlocked and start_ts > 0:
-        elapsed = max(0, int(time.time() - start_ts))
+        session_elapsed = max(0, int(time.time() - start_ts))
+        elapsed = accumulated + session_elapsed
     else:
-        elapsed = 0
+        # Frozen at accumulated time when locked
+        elapsed = accumulated
+
     return unlocked, start_ts, elapsed
 
 def get_global_unlocked_status() -> bool:
@@ -257,18 +268,68 @@ def get_global_unlocked_status() -> bool:
     return unlocked
 
 def set_global_unlocked_status(unlocked: bool) -> bool:
-    global _cached_global_unlocked, _cached_start_timestamp
+    global _cached_global_unlocked, _cached_start_timestamp, _cached_accumulated_elapsed
+    prev_unlocked, prev_start_ts, prev_elapsed = get_competition_time_info()
+
+    if unlocked == prev_unlocked:
+        return unlocked
+
     conn = get_connection()
     cursor = conn.cursor()
-    val = "1" if unlocked else "0"
-    current_time = time.time() if unlocked else 0.0
-    start_val = str(current_time) if unlocked else "0"
+
+    if unlocked:
+        # Resume or start ticking from current accumulated elapsed!
+        now = time.time()
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES ('global_challenges_unlocked', '1')
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """)
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES ('competition_start_time', ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """, (str(now),))
+        conn.commit()
+        conn.close()
+        _cached_global_unlocked = True
+        _cached_start_timestamp = now
+    else:
+        # Freeze at current elapsed moment!
+        new_accumulated = prev_elapsed
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES ('global_challenges_unlocked', '0')
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """)
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES ('competition_start_time', '0')
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """)
+        cursor.execute("""
+            INSERT INTO competition_config (key, value) VALUES ('competition_elapsed_seconds', ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """, (str(new_accumulated),))
+        conn.commit()
+        conn.close()
+        _cached_global_unlocked = False
+        _cached_start_timestamp = 0.0
+        _cached_accumulated_elapsed = new_accumulated
+
+    return unlocked
+
+def reset_competition_timer():
+    global _cached_global_unlocked, _cached_start_timestamp, _cached_accumulated_elapsed
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM competition_config WHERE key = 'global_challenges_unlocked'")
+    row = cursor.fetchone()
+    unlocked = (row["value"] == "1") if row else False
+
+    start_val = str(time.time()) if unlocked else "0"
+    start_ts = float(start_val)
 
     cursor.execute("""
-        INSERT INTO competition_config (key, value) VALUES ('global_challenges_unlocked', ?)
+        INSERT INTO competition_config (key, value) VALUES ('competition_elapsed_seconds', '0')
         ON CONFLICT(key) DO UPDATE SET value = excluded.value
-    """, (val,))
-
+    """)
     cursor.execute("""
         INSERT INTO competition_config (key, value) VALUES ('competition_start_time', ?)
         ON CONFLICT(key) DO UPDATE SET value = excluded.value
@@ -276,9 +337,12 @@ def set_global_unlocked_status(unlocked: bool) -> bool:
 
     conn.commit()
     conn.close()
+
     _cached_global_unlocked = unlocked
-    _cached_start_timestamp = current_time
-    return unlocked
+    _cached_start_timestamp = start_ts
+    _cached_accumulated_elapsed = 0
+
+    return unlocked, start_ts, 0
 
 if __name__ == "__main__":
     init_db()
