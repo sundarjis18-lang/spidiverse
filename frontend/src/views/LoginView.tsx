@@ -46,8 +46,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // Hidden admin access shortcut (Ctrl+Shift+A or Alt+A)
+  // Hidden admin access shortcut (Ctrl+Shift+A or Alt+A, or URL parameter /admin)
   useEffect(() => {
+    const isUrlAdmin =
+      window.location.pathname.toLowerCase().includes('/admin') ||
+      window.location.hash.toLowerCase().includes('admin') ||
+      new URLSearchParams(window.location.search).get('admin') === 'true';
+
+    if (isUrlAdmin) {
+      setShowAdminModal(true);
+    }
+
     const handleKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) || (e.altKey && (e.key === 'A' || e.key === 'a'))) {
         e.preventDefault();
