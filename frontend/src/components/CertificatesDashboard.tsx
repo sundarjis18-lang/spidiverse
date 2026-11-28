@@ -16,7 +16,8 @@ import {
   Users,
   User,
   GraduationCap,
-  Trophy
+  Trophy,
+  RefreshCw
 } from 'lucide-react';
 import { AdminStudent, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
@@ -130,128 +131,140 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
     }
   };
 
-  const handleDownloadPNG = () => {
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  const handleDownloadPNG = async () => {
     sounds.playWebShoot();
-    const canvas = canvasRef.current || document.createElement('canvas');
-    canvas.width = 1920;
-    canvas.height = 1080;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    setIsGenerating(true);
+    try {
+      const canvas = canvasRef.current || document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 1364; // 2x scaling of 1024x682 template
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Background gradient
-    const bgGradient = ctx.createRadialGradient(960, 540, 100, 960, 540, 1000);
-    if (themeTemplate === 'gold') {
-      bgGradient.addColorStop(0, '#1c1508');
-      bgGradient.addColorStop(1, '#080602');
-    } else if (themeTemplate === 'emerald') {
-      bgGradient.addColorStop(0, '#061c14');
-      bgGradient.addColorStop(1, '#020a06');
-    } else {
-      bgGradient.addColorStop(0, '#0c1630');
-      bgGradient.addColorStop(1, '#040712');
+      // Load official white & cyber-blue template
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = '/certificate_template.jpg';
+      await new Promise<void>((resolve, reject) => {
+        if (img.complete && img.naturalWidth !== 0) resolve();
+        else {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Failed to load certificate template'));
+        }
+      });
+
+      // 1. Draw base official template
+      ctx.drawImage(img, 0, 0, 2048, 1364);
+
+      // 2. Draw Dynamic Cursive Student Name above underline (y = 646)
+      const effectiveName = studentName.trim() || 'Student Name';
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#0A1931';
+
+      let nameFontSize = 74;
+      ctx.font = `italic 700 ${nameFontSize}px 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive`;
+      let nameMetrics = ctx.measureText(effectiveName);
+      while (nameMetrics.width > 1050 && nameFontSize > 34) {
+        nameFontSize -= 4;
+        ctx.font = `italic 700 ${nameFontSize}px 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive`;
+        nameMetrics = ctx.measureText(effectiveName);
+      }
+      ctx.fillText(effectiveName, 1024, 638);
+      ctx.restore();
+
+      // 3. Draw Dynamic Department Name flanked by navy lines (y = 720)
+      const effectiveDept = departmentName.trim() || 'Computer Science & Engineering';
+      const deptDisplay = effectiveDept.toUpperCase().startsWith('DEPARTMENT OF')
+        ? effectiveDept.toUpperCase()
+        : `DEPARTMENT OF ${effectiveDept.toUpperCase()}`;
+
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#0A1931';
+
+      let deptFontSize = 32;
+      ctx.font = `700 ${deptFontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
+      let deptMetrics = ctx.measureText(deptDisplay);
+      while (deptMetrics.width > 950 && deptFontSize > 18) {
+        deptFontSize -= 2;
+        ctx.font = `700 ${deptFontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
+        deptMetrics = ctx.measureText(deptDisplay);
+      }
+
+      const deptY = 720;
+      ctx.fillText(deptDisplay, 1024, deptY);
+
+      // Flanking horizontal lines
+      const lineLeftStart = 476;
+      const lineLeftEnd = Math.max(lineLeftStart, 1024 - (deptMetrics.width / 2) - 25);
+      const lineRightStart = Math.min(1620, 1024 + (deptMetrics.width / 2) + 25);
+      const lineRightEnd = 1620;
+
+      ctx.beginPath();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#171B38';
+      if (lineLeftEnd > lineLeftStart) {
+        ctx.moveTo(lineLeftStart, deptY);
+        ctx.lineTo(lineLeftEnd, deptY);
+      }
+      if (lineRightEnd > lineRightStart) {
+        ctx.moveTo(lineRightStart, deptY);
+        ctx.lineTo(lineRightEnd, deptY);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Draw Rank Distinction Stamp (if applicable: 1ST, 2ND, 3RD)
+      ctx.save();
+      const badgeX = 1750;
+      const badgeY = 320;
+      
+      let badgeBg = '#F59E0B'; // Gold
+      let badgeText = '1ST PLACE CHAMPION';
+      if (rankPlace === '2ND') {
+        badgeBg = '#00F0FF'; // Cyber Silver/Cyan
+        badgeText = '2ND PLACE RUNNER-UP';
+      } else if (rankPlace === '3RD') {
+        badgeBg = '#10B981'; // Emerald/Bronze
+        badgeText = '3RD PLACE DISTINCTION';
+      }
+
+      // Draw ribbon badge
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = badgeBg;
+      ctx.beginPath();
+      ctx.roundRect(badgeX - 160, badgeY - 25, 320, 50, 25);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#000000';
+      ctx.font = '900 18px "Inter", "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`★ ${badgeText} ★`, badgeX, badgeY);
+      ctx.restore();
+
+      // Trigger download
+      const cleanName = effectiveName.replace(/[^a-zA-Z0-9]/g, '_');
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `PyRank_${rankPlace}_Place_Certificate_${cleanName}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      sounds.playSuccess();
+    } catch (err) {
+      console.error('Failed to export certificate PNG:', err);
+      sounds.playError();
+    } finally {
+      setIsGenerating(false);
     }
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, 1920, 1080);
-
-    // Frame
-    ctx.strokeStyle = themeTemplate === 'gold' ? '#F59E0B' : themeTemplate === 'emerald' ? '#10B981' : '#00F0FF';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(50, 50, 1820, 980);
-
-    // Text Header
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 20px "Courier New", monospace';
-    ctx.fillStyle = themeTemplate === 'gold' ? '#FCD34D' : themeTemplate === 'emerald' ? '#6EE7B7' : '#00F0FF';
-    ctx.fillText('OFFICIAL VERIFIED CREDENTIAL • PYRANK • SECTOR 616', 960, 130);
-
-    ctx.font = '900 32px "Inter", "Segoe UI", sans-serif';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(customEventTitle, 960, 180);
-
-    ctx.font = '600 18px "Courier New", monospace';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText(customOrg, 960, 215);
-
-    // Award Title
-    const awardTitle = `CERTIFICATE OF MERIT & EXCELLENCE • ${rankPlace} PLACE`;
-
-    ctx.font = '900 48px "Inter", "Segoe UI", sans-serif';
-    ctx.fillStyle = themeTemplate === 'gold' ? '#FDE68A' : themeTemplate === 'emerald' ? '#A7F3D0' : '#00F0FF';
-    ctx.fillText(awardTitle, 960, 320);
-
-    ctx.font = 'bold 18px "Courier New", monospace';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText('THIS IS PROUDLY PRESENTED TO', 960, 375);
-
-    // Recipient Name
-    const effectiveName = studentName.trim() || 'SPIDER CADET';
-    ctx.font = '900 64px "Inter", "Segoe UI", sans-serif';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(effectiveName.toUpperCase(), 960, 460);
-
-    // Reg Number & Department
-    ctx.font = 'bold 22px "Courier New", monospace';
-    ctx.fillStyle = themeTemplate === 'gold' ? '#FCD34D' : themeTemplate === 'emerald' ? '#6EE7B7' : '#38BDF8';
-    const deptStr = departmentName.trim() ? `DEPARTMENT OF ${departmentName.trim().toUpperCase()}` : '';
-    const regStr = regNumber.trim() ? ` • COLLEGE REGISTER NO: ${regNumber.trim().toUpperCase()}` : '';
-    ctx.fillText(`${deptStr}${regStr}`, 960, 510);
-
-    // Citation
-    let citationRank = `${rankPlace} PLACE`;
-    let citationDesc = 'supreme distinction and master-level performance';
-    if (rankPlace === '2ND') citationDesc = 'remarkable distinction and high-speed debugging accuracy';
-    else if (rankPlace === '3RD') citationDesc = 'outstanding technical skill and analytical thinking';
-
-    ctx.font = '400 22px "Segoe UI", sans-serif';
-    ctx.fillStyle = '#CBD5E1';
-    ctx.fillText(
-      `for securing ${citationRank} with ${citationDesc} in the PyRank Spider-Code Python Debugging Challenge,`,
-      960,
-      580
-    );
-    ctx.fillText(
-      'demonstrating solid algorithmic thinking, analytical capabilities, and high-pressure debugging skills.',
-      960,
-      614
-    );
-
-    // Signatures
-    const sigY = 880;
-    ctx.font = 'italic 30px "Brush Script MT", "Segoe Script", cursive';
-    ctx.fillStyle = themeTemplate === 'gold' ? '#FCD34D' : themeTemplate === 'emerald' ? '#6EE7B7' : '#38BDF8';
-    ctx.fillText(signatory1Name, 500, sigY - 15);
-    ctx.fillText(signatory2Name, 1420, sigY - 15);
-
-    ctx.beginPath();
-    ctx.moveTo(350, sigY);
-    ctx.lineTo(650, sigY);
-    ctx.moveTo(1270, sigY);
-    ctx.lineTo(1570, sigY);
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.font = 'bold 16px "Inter", sans-serif';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(signatory1Name, 500, sigY + 28);
-    ctx.fillText(signatory2Name, 1420, sigY + 28);
-
-    ctx.font = '14px "Courier New", monospace';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText(signatory1Role, 500, sigY + 50);
-    ctx.fillText(signatory2Role, 1420, sigY + 50);
-
-    ctx.fillText(`ISSUED ON: ${customDate}`, 960, 890);
-
-    // Trigger download
-    const cleanName = effectiveName.replace(/[^a-zA-Z0-9]/g, '_');
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = `PyRank_${rankPlace}_Place_Certificate_${cleanName}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    sounds.playSuccess();
   };
 
   return (
@@ -576,11 +589,21 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
             <div className="pt-2 flex gap-3">
               <button
                 type="button"
+                disabled={isGenerating}
                 onClick={handleDownloadPNG}
-                className="flex-1 py-3 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-[#087CFF] to-[#00F0FF] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(8,124,255,0.4)]"
+                className="flex-1 py-3 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-[#087CFF] to-[#00F0FF] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(8,124,255,0.4)] disabled:opacity-50"
               >
-                <Download className="w-4 h-4" />
-                <span>Download PNG</span>
+                {isGenerating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Download PNG</span>
+                  </>
+                )}
               </button>
 
               <button
@@ -598,67 +621,89 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
           <div className="lg:col-span-7 space-y-3">
             <span className="text-xs font-mono text-cyan-400 font-bold uppercase flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
-              Certificate Live Preview
+              Official Certificate Live Preview
             </span>
 
-            <div className="w-full aspect-[1.55/1] rounded-3xl p-6 sm:p-8 border-2 border-[#00F0FF]/80 shadow-[0_0_50px_rgba(0,240,255,0.25)] relative overflow-hidden flex flex-col justify-between bg-gradient-to-br from-[#0d1633] via-[#080d22] to-[#040714] select-none">
-              <div className="text-center space-y-1 relative z-10">
-                <span className="font-mono text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">
-                  SECTOR 616 • OFFICIAL CREDENTIAL
+            {/* Official White & Cyber-Blue Certificate Preview Card */}
+            <div
+              id="printable-certificate"
+              className="relative w-full aspect-[1.5015/1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(8,124,255,0.25)] border-2 border-cyan-500/40 bg-white select-none"
+            >
+              {/* Clean Official Certificate Template Background */}
+              <img
+                src="/certificate_template.jpg"
+                alt="PyRank Official Certificate Template"
+                className="w-full h-full object-contain pointer-events-none"
+              />
+
+              {/* Dynamic Cursive Student Name */}
+              <div
+                className="absolute pointer-events-none text-center"
+                style={{
+                  top: '41.5%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '76%',
+                }}
+              >
+                <span
+                  className="block font-bold tracking-normal text-[#0A1931]"
+                  style={{
+                    fontFamily: "'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive",
+                    fontSize: 'clamp(16px, 3.2vw, 42px)',
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {studentName.trim() || 'Student Name'}
                 </span>
-                <h2 className="font-heading font-black text-sm text-white uppercase tracking-wider">
-                  {customEventTitle}
-                </h2>
-                <div className="w-32 h-0.5 bg-[#00F0FF] mx-auto my-1"></div>
               </div>
 
-              <div className="text-center my-auto space-y-1 relative z-10">
-                <span className={`font-heading font-black text-xl text-transparent bg-clip-text uppercase tracking-widest block ${rankPlace === '1ST'
-                    ? 'bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-500'
-                    : rankPlace === '2ND'
-                      ? 'bg-gradient-to-r from-slate-200 via-cyan-200 to-blue-400'
-                      : 'bg-gradient-to-r from-emerald-200 via-teal-300 to-emerald-500'
-                  }`}>
-                  CERTIFICATE OF MERIT & EXCELLENCE • {rankPlace} PLACE
+              {/* Dynamic Department Name */}
+              <div
+                className="absolute pointer-events-none flex items-center justify-center gap-2 sm:gap-3 px-3"
+                style={{
+                  top: '52.8%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '80%',
+                }}
+              >
+                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[130px]" />
+                <span
+                  className="font-sans font-bold text-[#0A1931] uppercase tracking-wider shrink-0 px-1"
+                  style={{
+                    fontSize: 'clamp(7px, 1.3vw, 15px)',
+                  }}
+                >
+                  {departmentName.trim()
+                    ? departmentName.toUpperCase().startsWith('DEPARTMENT OF')
+                      ? departmentName.toUpperCase()
+                      : `DEPARTMENT OF ${departmentName.toUpperCase()}`
+                    : 'DEPARTMENT OF COMPUTER SCIENCE'}
                 </span>
-                <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest block">
-                  THIS IS PROUDLY PRESENTED TO
-                </span>
-                <h1 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide py-0.5">
-                  {studentName.trim().toUpperCase() || 'CADET NAME'}
-                </h1>
-                <p className="font-mono text-xs font-bold text-cyan-300">
-                  {departmentName.trim() ? `DEPARTMENT OF ${departmentName.trim().toUpperCase()}` : ''}
-                  {regNumber.trim() ? ` • COLLEGE REG NO: ${regNumber.trim().toUpperCase()}` : ''}
-                </p>
-                <div className="pt-1">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${rankPlace === '1ST'
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[130px]" />
+              </div>
+
+              {/* Rank Distinction Ribbon Stamp */}
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  top: '23%',
+                  right: '3.5%',
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                <div
+                  className={`px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-heading font-black tracking-wider uppercase border shadow-lg flex items-center gap-1.5 ${
+                    rankPlace === '1ST'
+                      ? 'bg-amber-400 text-black border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
                       : rankPlace === '2ND'
-                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
-                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                    }`}>
-                    <Trophy className="w-3 h-3" />
-                    <span>{rankPlace === '1ST' ? '1ST PLACE CHAMPION' : rankPlace === '2ND' ? '2ND PLACE RUNNER-UP' : '3RD PLACE DISTINCTION'}</span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-end justify-between pt-3 border-t border-slate-800 text-center relative z-10">
-                <div className="w-32">
-                  <span className="font-serif italic text-sm text-cyan-300 block">{signatory1Name}</span>
-                  <div className="w-full h-0.5 bg-slate-700 my-0.5"></div>
-                  <span className="font-heading font-bold text-[9px] text-white block">{signatory1Name}</span>
-                  <span className="font-mono text-[8px] text-slate-400 block">{signatory1Role}</span>
-                </div>
-                <div className="text-center font-mono text-[9px] text-slate-400">
-                  {customDate}
-                </div>
-                <div className="w-32">
-                  <span className="font-serif italic text-sm text-cyan-300 block">{signatory2Name}</span>
-                  <div className="w-full h-0.5 bg-slate-700 my-0.5"></div>
-                  <span className="font-heading font-bold text-[9px] text-white block">{signatory2Name}</span>
-                  <span className="font-mono text-[8px] text-slate-400 block">{signatory2Role}</span>
+                      ? 'bg-cyan-400 text-black border-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.5)]'
+                      : 'bg-emerald-400 text-black border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                  }`}
+                >
+                  <Trophy className="w-3 h-3 text-black" />
+                  <span>{rankPlace === '1ST' ? '1ST PLACE CHAMPION' : rankPlace === '2ND' ? '2ND PLACE RUNNER-UP' : '3RD PLACE DISTINCTION'}</span>
                 </div>
               </div>
             </div>
