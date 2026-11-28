@@ -13,7 +13,10 @@ import {
   Shield,
   FileCheck,
   Star,
-  Users
+  Users,
+  User,
+  GraduationCap,
+  Trophy
 } from 'lucide-react';
 import { AdminStudent, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
@@ -38,21 +41,32 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
   // Sub-tab: Master Control vs Custom Studio Generator
   const [activeTab, setActiveTab] = useState<'control' | 'studio'>('control');
 
-  // Generator Studio state
-  const [selectedStudentId, setSelectedStudentId] = useState<string>(
-    students.length > 0 ? String(students[0].id) : ''
-  );
-  const [certType, setCertType] = useState<'participation' | 'merit' | 'completion'>('participation');
+  // Generator Studio state: Student Name, Department Name, and Place of Rank (1ST, 2nd & 3rd)
+  const firstStudent = students.length > 0 ? students[0] : null;
+  const [studentName, setStudentName] = useState<string>(firstStudent?.name || 'Peter Parker');
+  const [departmentName, setDepartmentName] = useState<string>(firstStudent?.department || 'Computer Science and Engineering');
+  const [regNumber, setRegNumber] = useState<string>(firstStudent?.reg_number || 'RA2111003010142');
+  const [rankPlace, setRankPlace] = useState<'1ST' | '2ND' | '3RD'>('1ST');
+
   const [customEventTitle, setCustomEventTitle] = useState('PYRANK 2026: SPIDER-CODE PYTHON DEBUGGING ARENA');
   const [customOrg, setCustomOrg] = useState('PROGRAMMING CLUB & DEPARTMENT OF COMPUTER SCIENCE');
-  const [customDate, setCustomDate] = useState('November 27, 2026');
+  const [customDate, setCustomDate] = useState('November 28, 2026');
   const [signatory1Name, setSignatory1Name] = useState('Dr. K. R. Sharma');
   const [signatory1Role, setSignatory1Role] = useState('Faculty Coordinator, CSE');
   const [signatory2Name, setSignatory2Name] = useState('Spider-Verse Convener');
   const [signatory2Role, setSignatory2Role] = useState('Programming Club Lead');
-  const [themeTemplate, setThemeTemplate] = useState<'cyber' | 'gold' | 'emerald'>('cyber');
+  const [themeTemplate, setThemeTemplate] = useState<'cyber' | 'gold' | 'emerald'>('gold');
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Auto-sync initial student values when students load
+  useEffect(() => {
+    if (students.length > 0 && studentName === 'Peter Parker') {
+      setStudentName(students[0].name);
+      if (students[0].department) setDepartmentName(students[0].department);
+      if (students[0].reg_number) setRegNumber(students[0].reg_number);
+    }
+  }, [students]);
 
   // Load initial certificates open status on mount
   useEffect(() => {
@@ -116,11 +130,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
     }
   };
 
-  const currentStudioStudent: AdminStudent | undefined =
-    students.find(s => String(s.id) === selectedStudentId) || students[0];
-
   const handleDownloadPNG = () => {
-    if (!currentStudioStudent) return;
     sounds.playWebShoot();
     const canvas = canvasRef.current || document.createElement('canvas');
     canvas.width = 1920;
@@ -163,11 +173,9 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
     ctx.fillText(customOrg, 960, 215);
 
     // Award Title
-    let awardTitle = 'CERTIFICATE OF PARTICIPATION';
-    if (certType === 'merit') awardTitle = 'CERTIFICATE OF MERIT & EXCELLENCE';
-    if (certType === 'completion') awardTitle = 'CERTIFICATE OF QUANTUM MASTERY';
+    const awardTitle = `CERTIFICATE OF MERIT & EXCELLENCE • ${rankPlace} PLACE`;
 
-    ctx.font = '900 50px "Inter", "Segoe UI", sans-serif';
+    ctx.font = '900 48px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = themeTemplate === 'gold' ? '#FDE68A' : themeTemplate === 'emerald' ? '#A7F3D0' : '#00F0FF';
     ctx.fillText(awardTitle, 960, 320);
 
@@ -176,21 +184,28 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
     ctx.fillText('THIS IS PROUDLY PRESENTED TO', 960, 375);
 
     // Recipient Name
+    const effectiveName = studentName.trim() || 'SPIDER CADET';
     ctx.font = '900 64px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(currentStudioStudent.name.toUpperCase(), 960, 460);
+    ctx.fillText(effectiveName.toUpperCase(), 960, 460);
 
     // Reg Number & Department
     ctx.font = 'bold 22px "Courier New", monospace';
     ctx.fillStyle = themeTemplate === 'gold' ? '#FCD34D' : themeTemplate === 'emerald' ? '#6EE7B7' : '#38BDF8';
-    const deptStr = currentStudioStudent.department ? `DEPARTMENT OF ${currentStudioStudent.department.toUpperCase()} • ` : '';
-    ctx.fillText(`${deptStr}COLLEGE REGISTER NO: ${currentStudioStudent.reg_number}`, 960, 510);
+    const deptStr = departmentName.trim() ? `DEPARTMENT OF ${departmentName.trim().toUpperCase()}` : '';
+    const regStr = regNumber.trim() ? ` • COLLEGE REGISTER NO: ${regNumber.trim().toUpperCase()}` : '';
+    ctx.fillText(`${deptStr}${regStr}`, 960, 510);
 
     // Citation
+    let citationRank = `${rankPlace} PLACE`;
+    let citationDesc = 'supreme distinction and master-level performance';
+    if (rankPlace === '2ND') citationDesc = 'remarkable distinction and high-speed debugging accuracy';
+    else if (rankPlace === '3RD') citationDesc = 'outstanding technical skill and analytical thinking';
+
     ctx.font = '400 22px "Segoe UI", sans-serif';
     ctx.fillStyle = '#CBD5E1';
     ctx.fillText(
-      'for commendable performance and active participation in the PyRank Spider-Code Python Debugging Challenge,',
+      `for securing ${citationRank} with ${citationDesc} in the PyRank Spider-Code Python Debugging Challenge,`,
       960,
       580
     );
@@ -229,10 +244,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
     ctx.fillText(`ISSUED ON: ${customDate}`, 960, 890);
 
     // Trigger download
-    const cleanName = currentStudioStudent.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanName = effectiveName.replace(/[^a-zA-Z0-9]/g, '_');
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = `PyRank_${certType}_Certificate_${cleanName}.png`;
+    a.download = `PyRank_${rankPlace}_Place_Certificate_${cleanName}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -499,62 +514,92 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               <span>Certificate Studio Configurator</span>
             </div>
 
-            {/* Recipient */}
+            {/* Student Name */}
             <div>
-              <label className="block text-xs font-mono font-semibold text-slate-300 mb-1 uppercase">
-                Select Recipient Cadet
+              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Student Name <span className="text-rose-400">*</span></span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-normal">Editable</span>
               </label>
-              <select
-                value={selectedStudentId}
-                onChange={e => setSelectedStudentId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 text-xs text-white font-mono outline-none focus:border-[#00F0FF]"
-              >
-                {students.map(s => (
-                  <option key={s.id} value={String(s.id)}>
-                    {s.name} ({s.reg_number}) - {s.department || 'General'}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={studentName}
+                onChange={e => setStudentName(e.target.value)}
+                placeholder="Enter Student Name (e.g. Peter Parker)..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-[#00F0FF] text-xs text-white font-mono outline-none transition-all shadow-inner"
+              />
             </div>
 
-            {/* Certificate Type */}
+            {/* Department Name */}
             <div>
-              <label className="block text-xs font-mono font-semibold text-slate-300 mb-1.5 uppercase">
-                Certificate Distinction
+              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Department Name <span className="text-rose-400">*</span></span>
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCertType('participation')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'participation'
-                    ? 'bg-cyan-950/80 border-[#00F0FF] text-cyan-300'
-                    : 'bg-[#080B18] border-slate-700 text-slate-400'
-                    }`}
+              <input
+                type="text"
+                value={departmentName}
+                onChange={e => setDepartmentName(e.target.value)}
+                placeholder="Enter Department Name (e.g. Computer Science and Engineering)..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-[#00F0FF] text-xs text-white font-mono outline-none transition-all shadow-inner"
+              />
+            </div>
+
+            {/* Place of Rank Droplist: 1ST, 2nd & 3rd */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                <span>Place of Rank <span className="text-rose-400">*</span></span>
+              </label>
+              <div className="relative">
+                <select
+                  value={rankPlace}
+                  onChange={e => {
+                    const val = e.target.value as '1ST' | '2ND' | '3RD';
+                    setRankPlace(val);
+                    if (val === '1ST') setThemeTemplate('gold');
+                    else if (val === '2ND') setThemeTemplate('cyber');
+                    else if (val === '3RD') setThemeTemplate('emerald');
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-amber-500/60 focus:border-amber-400 text-xs font-mono font-bold text-amber-300 outline-none cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                 >
-                  Participation
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCertType('merit')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'merit'
-                    ? 'bg-amber-950/80 border-amber-500 text-amber-300'
-                    : 'bg-[#080B18] border-slate-700 text-slate-400'
-                    }`}
-                >
-                  Merit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCertType('completion')}
-                  className={`px-3 py-2 rounded-xl text-xs font-mono font-semibold border ${certType === 'completion'
-                    ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300'
-                    : 'bg-[#080B18] border-slate-700 text-slate-400'
-                    }`}
-                >
-                  10/10 Master
-                </button>
+                  <option value="1ST">1ST (1st Place - Gold Champion)</option>
+                  <option value="2ND">2nd (2nd Place - Silver Distinction)</option>
+                  <option value="3RD">3rd (3rd Place - Bronze Distinction)</option>
+                </select>
               </div>
             </div>
+
+            {/* Optional Cadet Quick Auto-Fill */}
+            {students.length > 0 && (
+              <div className="pt-1 border-t border-slate-800/80">
+                <label className="block text-[10px] font-mono font-semibold text-slate-500 mb-1 uppercase flex items-center justify-between">
+                  <span>Auto-fill from Registered Cadets</span>
+                  <span className="text-cyan-400 text-[9px]">Optional quick select</span>
+                </label>
+                <select
+                  defaultValue=""
+                  onChange={e => {
+                    const found = students.find(s => String(s.id) === e.target.value);
+                    if (found) {
+                      setStudentName(found.name);
+                      if (found.department) setDepartmentName(found.department);
+                      if (found.reg_number) setRegNumber(found.reg_number);
+                    }
+                  }}
+                  className="w-full px-3 py-1.5 rounded-lg bg-[#090D1C] border border-slate-800 text-[11px] text-slate-400 font-mono outline-none focus:border-cyan-400"
+                >
+                  <option value="" disabled>-- Select cadet to populate fields --</option>
+                  {students.map(s => (
+                    <option key={s.id} value={String(s.id)}>
+                      {s.name} ({s.reg_number}) - {s.department || 'General'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Custom Titles */}
             <div className="space-y-3">
@@ -663,23 +708,37 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               </div>
 
               <div className="text-center my-auto space-y-1 relative z-10">
-                <span className="font-heading font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-[#00F0FF] uppercase tracking-widest block">
-                  {certType === 'merit'
-                    ? 'CERTIFICATE OF MERIT & EXCELLENCE'
-                    : certType === 'completion'
-                      ? 'CERTIFICATE OF QUANTUM MASTERY'
-                      : 'CERTIFICATE OF PARTICIPATION'}
+                <span className={`font-heading font-black text-xl text-transparent bg-clip-text uppercase tracking-widest block ${
+                  rankPlace === '1ST'
+                    ? 'bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-500'
+                    : rankPlace === '2ND'
+                    ? 'bg-gradient-to-r from-slate-200 via-cyan-200 to-blue-400'
+                    : 'bg-gradient-to-r from-emerald-200 via-teal-300 to-emerald-500'
+                }`}>
+                  CERTIFICATE OF MERIT & EXCELLENCE • {rankPlace} PLACE
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest block">
                   THIS IS PROUDLY PRESENTED TO
                 </span>
                 <h1 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide py-0.5">
-                  {currentStudioStudent ? currentStudioStudent.name.toUpperCase() : 'CADET NAME'}
+                  {studentName.trim().toUpperCase() || 'CADET NAME'}
                 </h1>
                 <p className="font-mono text-xs font-bold text-cyan-300">
-                  {currentStudioStudent?.department ? `DEPARTMENT OF ${currentStudioStudent.department.toUpperCase()} • ` : ''}
-                  COLLEGE REG NO: {currentStudioStudent?.reg_number || 'RA0000'}
+                  {departmentName.trim() ? `DEPARTMENT OF ${departmentName.trim().toUpperCase()}` : ''}
+                  {regNumber.trim() ? ` • COLLEGE REG NO: ${regNumber.trim().toUpperCase()}` : ''}
                 </p>
+                <div className="pt-1">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                    rankPlace === '1ST'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                      : rankPlace === '2ND'
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                  }`}>
+                    <Trophy className="w-3 h-3" />
+                    <span>{rankPlace === '1ST' ? '1ST PLACE CHAMPION' : rankPlace === '2ND' ? '2ND PLACE RUNNER-UP' : '3RD PLACE DISTINCTION'}</span>
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-end justify-between pt-3 border-t border-slate-800 text-center relative z-10">

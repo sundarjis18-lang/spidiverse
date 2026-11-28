@@ -284,7 +284,7 @@ export const StudentCertificateView: React.FC<StudentCertificateViewProps> = ({ 
     const effectiveDept = department.trim() || user.department || 'Computer Science';
     const subject = encodeURIComponent(`Official ${certType} Certificate - PyRank 2026: ${effectiveName}`);
     const body = encodeURIComponent(
-`Dear ${effectiveName},
+      `Dear ${effectiveName},
 
 Congratulations on your performance in the PyRank 2026: Spider-Code Python Debugging Arena!
 
