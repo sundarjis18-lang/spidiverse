@@ -572,107 +572,12 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               </div>
             </div>
 
-            {/* Optional Cadet Quick Auto-Fill */}
-            {students.length > 0 && (
-              <div className="pt-1 border-t border-slate-800/80">
-                <label className="block text-[10px] font-mono font-semibold text-slate-500 mb-1 uppercase flex items-center justify-between">
-                  <span>Auto-fill from Registered Cadets</span>
-                  <span className="text-cyan-400 text-[9px]">Optional quick select</span>
-                </label>
-                <select
-                  defaultValue=""
-                  onChange={e => {
-                    const found = students.find(s => String(s.id) === e.target.value);
-                    if (found) {
-                      setStudentName(found.name);
-                      if (found.department) setDepartmentName(found.department);
-                      if (found.reg_number) setRegNumber(found.reg_number);
-                    }
-                  }}
-                  className="w-full px-3 py-1.5 rounded-lg bg-[#090D1C] border border-slate-800 text-[11px] text-slate-400 font-mono outline-none focus:border-cyan-400"
-                >
-                  <option value="" disabled>-- Select cadet to populate fields --</option>
-                  {students.map(s => (
-                    <option key={s.id} value={String(s.id)}>
-                      {s.name} ({s.reg_number}) - {s.department || 'General'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Custom Titles */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1 uppercase">
-                  Event Title
-                </label>
-                <input
-                  type="text"
-                  value={customEventTitle}
-                  onChange={e => setCustomEventTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#080B18] border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1 uppercase">
-                  Organizing Body
-                </label>
-                <input
-                  type="text"
-                  value={customOrg}
-                  onChange={e => setCustomOrg(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#080B18] border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
-                />
-              </div>
-            </div>
-
-            {/* Signatories */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-mono text-slate-400 mb-1 uppercase">
-                  Signatory 1
-                </label>
-                <input
-                  type="text"
-                  value={signatory1Name}
-                  onChange={e => setSignatory1Name(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#080B18] border border-slate-700 text-xs text-white font-mono mb-1"
-                />
-                <input
-                  type="text"
-                  value={signatory1Role}
-                  onChange={e => setSignatory1Role(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#080B18] border border-slate-700 text-[11px] text-slate-400 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono text-slate-400 mb-1 uppercase">
-                  Signatory 2
-                </label>
-                <input
-                  type="text"
-                  value={signatory2Name}
-                  onChange={e => setSignatory2Name(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#080B18] border border-slate-700 text-xs text-white font-mono mb-1"
-                />
-                <input
-                  type="text"
-                  value={signatory2Role}
-                  onChange={e => setSignatory2Role(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#080B18] border border-slate-700 text-[11px] text-slate-400 font-mono"
-                />
-              </div>
-            </div>
-
             {/* Export Buttons */}
             <div className="pt-2 flex gap-3">
               <button
                 type="button"
                 onClick={handleDownloadPNG}
-                className="flex-1 py-3 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-[#087CFF] to-[#00F0FF] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-[#087CFF] to-[#00F0FF] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(8,124,255,0.4)]"
               >
                 <Download className="w-4 h-4" />
                 <span>Download PNG</span>
@@ -681,7 +586,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="py-3 px-5 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all flex items-center justify-center gap-2"
+                className="py-3 px-5 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print</span>
@@ -708,13 +613,12 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               </div>
 
               <div className="text-center my-auto space-y-1 relative z-10">
-                <span className={`font-heading font-black text-xl text-transparent bg-clip-text uppercase tracking-widest block ${
-                  rankPlace === '1ST'
+                <span className={`font-heading font-black text-xl text-transparent bg-clip-text uppercase tracking-widest block ${rankPlace === '1ST'
                     ? 'bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-500'
                     : rankPlace === '2ND'
-                    ? 'bg-gradient-to-r from-slate-200 via-cyan-200 to-blue-400'
-                    : 'bg-gradient-to-r from-emerald-200 via-teal-300 to-emerald-500'
-                }`}>
+                      ? 'bg-gradient-to-r from-slate-200 via-cyan-200 to-blue-400'
+                      : 'bg-gradient-to-r from-emerald-200 via-teal-300 to-emerald-500'
+                  }`}>
                   CERTIFICATE OF MERIT & EXCELLENCE • {rankPlace} PLACE
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest block">
@@ -728,13 +632,12 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                   {regNumber.trim() ? ` • COLLEGE REG NO: ${regNumber.trim().toUpperCase()}` : ''}
                 </p>
                 <div className="pt-1">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
-                    rankPlace === '1ST'
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${rankPlace === '1ST'
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
                       : rankPlace === '2ND'
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                  }`}>
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                    }`}>
                     <Trophy className="w-3 h-3" />
                     <span>{rankPlace === '1ST' ? '1ST PLACE CHAMPION' : rankPlace === '2ND' ? '2ND PLACE RUNNER-UP' : '3RD PLACE DISTINCTION'}</span>
                   </span>
