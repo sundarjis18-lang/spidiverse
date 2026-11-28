@@ -47,7 +47,16 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
   const [studentName, setStudentName] = useState<string>(firstStudent?.name || 'Peter Parker');
   const [departmentName, setDepartmentName] = useState<string>(firstStudent?.department || 'Computer Science and Engineering');
   const [regNumber, setRegNumber] = useState<string>(firstStudent?.reg_number || 'RA2111003010142');
-  const [rankPlace, setRankPlace] = useState<'1ST' | '2ND' | '3RD'>('1ST');
+  const [rankPlace, setRankPlace] = useState<'1ST' | '2ND' | '3RD' | 'PARTICIPATION'>('1ST');
+
+  const getRankTemplateSrc = (rank: '1ST' | '2ND' | '3RD' | 'PARTICIPATION') => {
+    if (rank === '1ST') return '/certificate_rank1_template.jpg';
+    if (rank === '2ND') return '/certificate_rank2_template.jpg';
+    if (rank === '3RD') return '/certificate_rank3_template.jpg';
+    return '/certificate_template.jpg';
+  };
+
+  const isRankCert = rankPlace === '1ST' || rankPlace === '2ND' || rankPlace === '3RD';
 
   const [customEventTitle, setCustomEventTitle] = useState('PYRANK 2026: SPIDER-CODE PYTHON DEBUGGING ARENA');
   const [customOrg, setCustomOrg] = useState('PROGRAMMING CLUB & DEPARTMENT OF COMPUTER SCIENCE');
@@ -143,10 +152,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Load official white & cyber-blue template
+      const templateSrc = getRankTemplateSrc(rankPlace);
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.src = '/certificate_template.jpg';
+      img.src = templateSrc;
       await new Promise<void>((resolve, reject) => {
         if (img.complete && img.naturalWidth !== 0) resolve();
         else {
@@ -155,10 +164,16 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
         }
       });
 
-      // 1. Draw base official template
+      // 1. Draw base official template (1st, 2nd, 3rd, or Participation)
       ctx.drawImage(img, 0, 0, 2048, 1364);
 
-      // 2. Draw Dynamic Cursive Student Name above underline (y = 646)
+      // Coordinates: In rank certs, text center is x=1080 (due to left ribbon medal)
+      // In participation certs, text center is x=1024
+      const centerX = isRankCert ? 1080 : 1024;
+      const nameY = isRankCert ? 668 : 638;
+      const deptY = isRankCert ? 748 : 720;
+
+      // 2. Draw Dynamic Cursive Student Name above underline
       const effectiveName = studentName.trim() || 'Student Name';
       ctx.save();
       ctx.textAlign = 'center';
@@ -168,15 +183,16 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       let nameFontSize = 74;
       ctx.font = `italic 700 ${nameFontSize}px 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive`;
       let nameMetrics = ctx.measureText(effectiveName);
-      while (nameMetrics.width > 1050 && nameFontSize > 34) {
+      const maxNameWidth = isRankCert ? 960 : 1050;
+      while (nameMetrics.width > maxNameWidth && nameFontSize > 32) {
         nameFontSize -= 4;
         ctx.font = `italic 700 ${nameFontSize}px 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive`;
         nameMetrics = ctx.measureText(effectiveName);
       }
-      ctx.fillText(effectiveName, 1024, 638);
+      ctx.fillText(effectiveName, centerX, nameY);
       ctx.restore();
 
-      // 3. Draw Dynamic Department Name flanked by navy lines (y = 720)
+      // 3. Draw Dynamic Department Name flanked by navy lines
       const effectiveDept = departmentName.trim() || 'Computer Science & Engineering';
       const deptDisplay = effectiveDept.toUpperCase().startsWith('DEPARTMENT OF')
         ? effectiveDept.toUpperCase()
@@ -187,23 +203,23 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#0A1931';
 
-      let deptFontSize = 32;
+      let deptFontSize = 30;
       ctx.font = `700 ${deptFontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
       let deptMetrics = ctx.measureText(deptDisplay);
-      while (deptMetrics.width > 950 && deptFontSize > 18) {
+      const maxDeptWidth = isRankCert ? 860 : 950;
+      while (deptMetrics.width > maxDeptWidth && deptFontSize > 18) {
         deptFontSize -= 2;
         ctx.font = `700 ${deptFontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
         deptMetrics = ctx.measureText(deptDisplay);
       }
 
-      const deptY = 720;
-      ctx.fillText(deptDisplay, 1024, deptY);
+      ctx.fillText(deptDisplay, centerX, deptY);
 
       // Flanking horizontal lines
-      const lineLeftStart = 476;
-      const lineLeftEnd = Math.max(lineLeftStart, 1024 - (deptMetrics.width / 2) - 25);
-      const lineRightStart = Math.min(1620, 1024 + (deptMetrics.width / 2) + 25);
-      const lineRightEnd = 1620;
+      const lineLeftStart = isRankCert ? 550 : 476;
+      const lineRightEnd = isRankCert ? 1630 : 1620;
+      const lineLeftEnd = Math.max(lineLeftStart, centerX - (deptMetrics.width / 2) - 20);
+      const lineRightStart = Math.min(lineRightEnd, centerX + (deptMetrics.width / 2) + 20);
 
       ctx.beginPath();
       ctx.lineWidth = 3;
@@ -219,42 +235,11 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       ctx.stroke();
       ctx.restore();
 
-      // 4. Draw Rank Distinction Stamp (if applicable: 1ST, 2ND, 3RD)
-      ctx.save();
-      const badgeX = 1750;
-      const badgeY = 320;
-      
-      let badgeBg = '#F59E0B'; // Gold
-      let badgeText = '1ST PLACE CHAMPION';
-      if (rankPlace === '2ND') {
-        badgeBg = '#00F0FF'; // Cyber Silver/Cyan
-        badgeText = '2ND PLACE RUNNER-UP';
-      } else if (rankPlace === '3RD') {
-        badgeBg = '#10B981'; // Emerald/Bronze
-        badgeText = '3RD PLACE DISTINCTION';
-      }
-
-      // Draw ribbon badge
-      ctx.shadowColor = 'rgba(0,0,0,0.2)';
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = badgeBg;
-      ctx.beginPath();
-      ctx.roundRect(badgeX - 160, badgeY - 25, 320, 50, 25);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#000000';
-      ctx.font = '900 18px "Inter", "Segoe UI", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`★ ${badgeText} ★`, badgeX, badgeY);
-      ctx.restore();
-
       // Trigger download
       const cleanName = effectiveName.replace(/[^a-zA-Z0-9]/g, '_');
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
-      a.download = `PyRank_${rankPlace}_Place_Certificate_${cleanName}.png`;
+      a.download = `PyRank_${rankPlace}_Certificate_${cleanName}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -570,7 +555,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                 <select
                   value={rankPlace}
                   onChange={e => {
-                    const val = e.target.value as '1ST' | '2ND' | '3RD';
+                    const val = e.target.value as '1ST' | '2ND' | '3RD' | 'PARTICIPATION';
                     setRankPlace(val);
                     if (val === '1ST') setThemeTemplate('gold');
                     else if (val === '2ND') setThemeTemplate('cyber');
@@ -578,9 +563,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                   }}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-amber-500/60 focus:border-amber-400 text-xs font-mono font-bold text-amber-300 outline-none cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                 >
-                  <option value="1ST">1ST (1st Place - Gold Champion)</option>
-                  <option value="2ND">2nd (2nd Place - Silver Distinction)</option>
-                  <option value="3RD">3rd (3rd Place - Bronze Distinction)</option>
+                  <option value="1ST">1ST Place (1st Place Certificate - Gold)</option>
+                  <option value="2ND">2nd Place (2nd Place Certificate - Silver)</option>
+                  <option value="3RD">3rd Place (3rd Place Certificate - Bronze)</option>
+                  <option value="PARTICIPATION">Participation Certificate</option>
                 </select>
               </div>
             </div>
@@ -619,20 +605,32 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
 
           {/* Live Preview (7 cols) */}
           <div className="lg:col-span-7 space-y-3">
-            <span className="text-xs font-mono text-cyan-400 font-bold uppercase flex items-center gap-1.5">
-              <Eye className="w-4 h-4" />
-              Official Certificate Live Preview
-            </span>
+            <div className="flex items-center justify-between text-xs font-mono font-bold uppercase">
+              <span className="text-cyan-400 flex items-center gap-1.5">
+                <Eye className="w-4 h-4" />
+                <span>Official Certificate Live Preview</span>
+              </span>
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full border bg-[#101736] border-amber-500/50 text-amber-300">
+                {rankPlace === '1ST'
+                  ? '🥇 1ST PLACE CERTIFICATE'
+                  : rankPlace === '2ND'
+                  ? '🥈 2ND PLACE CERTIFICATE'
+                  : rankPlace === '3RD'
+                  ? '🥉 3RD PLACE CERTIFICATE'
+                  : 'PARTICIPATION CERTIFICATE'}
+              </span>
+            </div>
 
-            {/* Official White & Cyber-Blue Certificate Preview Card */}
+            {/* Official Certificate Preview Card */}
             <div
               id="printable-certificate"
-              className="relative w-full aspect-[1.5015/1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(8,124,255,0.25)] border-2 border-cyan-500/40 bg-white select-none"
+              className="relative w-full aspect-[1.5015/1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(8,124,255,0.25)] border-2 border-cyan-500/40 bg-white select-none transition-all"
             >
-              {/* Clean Official Certificate Template Background */}
+              {/* Dynamic Certificate Template Image for 1st, 2nd, 3rd, or Participation */}
               <img
-                src="/certificate_template.jpg"
-                alt="PyRank Official Certificate Template"
+                key={rankPlace}
+                src={getRankTemplateSrc(rankPlace)}
+                alt={`PyRank ${rankPlace} Certificate`}
                 className="w-full h-full object-contain pointer-events-none"
               />
 
@@ -640,10 +638,10 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               <div
                 className="absolute pointer-events-none text-center"
                 style={{
-                  top: '41.5%',
-                  left: '50%',
+                  top: isRankCert ? '43.2%' : '41.5%',
+                  left: isRankCert ? '52.7%' : '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '76%',
+                  width: isRankCert ? '62%' : '76%',
                 }}
               >
                 <span
@@ -662,13 +660,13 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               <div
                 className="absolute pointer-events-none flex items-center justify-center gap-2 sm:gap-3 px-3"
                 style={{
-                  top: '52.8%',
-                  left: '50%',
+                  top: isRankCert ? '54.8%' : '52.8%',
+                  left: isRankCert ? '52.7%' : '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '80%',
+                  width: isRankCert ? '65%' : '80%',
                 }}
               >
-                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[130px]" />
+                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[120px]" />
                 <span
                   className="font-sans font-bold text-[#0A1931] uppercase tracking-wider shrink-0 px-1"
                   style={{
@@ -681,30 +679,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
                       : `DEPARTMENT OF ${departmentName.toUpperCase()}`
                     : 'DEPARTMENT OF COMPUTER SCIENCE'}
                 </span>
-                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[130px]" />
-              </div>
-
-              {/* Rank Distinction Ribbon Stamp */}
-              <div
-                className="absolute pointer-events-none"
-                style={{
-                  top: '23%',
-                  right: '3.5%',
-                  transform: 'translateY(-50%)',
-                }}
-              >
-                <div
-                  className={`px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-heading font-black tracking-wider uppercase border shadow-lg flex items-center gap-1.5 ${
-                    rankPlace === '1ST'
-                      ? 'bg-amber-400 text-black border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
-                      : rankPlace === '2ND'
-                      ? 'bg-cyan-400 text-black border-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.5)]'
-                      : 'bg-emerald-400 text-black border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
-                  }`}
-                >
-                  <Trophy className="w-3 h-3 text-black" />
-                  <span>{rankPlace === '1ST' ? '1ST PLACE CHAMPION' : rankPlace === '2ND' ? '2ND PLACE RUNNER-UP' : '3RD PLACE DISTINCTION'}</span>
-                </div>
+                <div className="h-[1.5px] sm:h-[2px] bg-[#171B38] flex-1 max-w-[120px]" />
               </div>
             </div>
           </div>
