@@ -13,14 +13,7 @@ import {
   Shield,
   FileCheck,
   Star,
-  Users,
-  Mail,
-  Send,
-  Key,
-  HelpCircle,
-  RefreshCw,
-  AlertCircle,
-  ExternalLink
+  Users
 } from 'lucide-react';
 import { AdminStudent, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
@@ -42,20 +35,8 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
-  // Sub-tab: Master Control vs Custom Studio Generator vs Email Delivery Setup
-  const [activeTab, setActiveTab] = useState<'control' | 'studio' | 'email'>('control');
-
-  // SMTP Configuration state
-  const [smtpHost, setSmtpHost] = useState('smtp.gmail.com');
-  const [smtpPort, setSmtpPort] = useState(587);
-  const [smtpUser, setSmtpUser] = useState('251300588077@srcas.ac.in');
-  const [smtpPass, setSmtpPass] = useState('');
-  const [smtpFrom, setSmtpFrom] = useState('PyRank Arena <251300588077@srcas.ac.in>');
-  const [smtpIsConfigured, setSmtpIsConfigured] = useState(false);
-  const [smtpLoading, setSmtpLoading] = useState(false);
-  const [smtpMsg, setSmtpMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [testEmailAddress, setTestEmailAddress] = useState('');
-  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  // Sub-tab: Master Control vs Custom Studio Generator
+  const [activeTab, setActiveTab] = useState<'control' | 'studio'>('control');
 
   // Generator Studio state
   const [selectedStudentId, setSelectedStudentId] = useState<string>(
@@ -73,7 +54,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Load initial certificates open status and SMTP config on mount
+  // Load initial certificates open status on mount
   useEffect(() => {
     const loadStatus = async () => {
       try {
@@ -87,68 +68,7 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
       }
     };
     loadStatus();
-
-    api.getSmtpConfig().then(cfg => {
-      if (cfg) {
-        if (cfg.smtp_host) setSmtpHost(cfg.smtp_host);
-        if (cfg.smtp_port) setSmtpPort(cfg.smtp_port);
-        if (cfg.smtp_user) {
-          setSmtpUser(cfg.smtp_user);
-          setTestEmailAddress(cfg.smtp_user);
-        }
-        if (cfg.smtp_from) setSmtpFrom(cfg.smtp_from);
-        setSmtpIsConfigured(cfg.is_configured);
-      }
-    }).catch(() => { });
   }, []);
-
-  // Save SMTP configuration
-  const handleSaveSmtp = async () => {
-    sounds.playWebShoot();
-    setSmtpLoading(true);
-    setSmtpMsg(null);
-    try {
-      const res = await api.saveSmtpConfig({
-        smtp_host: smtpHost,
-        smtp_port: Number(smtpPort),
-        smtp_user: smtpUser.trim(),
-        smtp_pass: smtpPass.trim(),
-        smtp_from: smtpFrom.trim() || smtpUser.trim()
-      });
-      sounds.playSuccess();
-      setSmtpIsConfigured(res.is_configured);
-      setSmtpMsg({ type: 'success', text: res.message || 'SMTP Credentials successfully saved!' });
-      setTimeout(() => setSmtpMsg(null), 5000);
-    } catch (err: any) {
-      sounds.playError();
-      setSmtpMsg({ type: 'error', text: err?.message || 'Failed to save SMTP configuration.' });
-    } finally {
-      setSmtpLoading(false);
-    }
-  };
-
-  // Test SMTP configuration by sending an email
-  const handleTestSmtp = async () => {
-    if (!testEmailAddress || !testEmailAddress.includes('@')) {
-      sounds.playError();
-      setSmtpMsg({ type: 'error', text: 'Please enter a valid recipient email address for testing.' });
-      return;
-    }
-    sounds.playWebShoot();
-    setIsTestingEmail(true);
-    setSmtpMsg(null);
-    try {
-      const res = await api.testSmtpConfig(testEmailAddress.trim());
-      sounds.playSuccess();
-      setSmtpMsg({ type: 'success', text: res.message || `Test email successfully sent to ${testEmailAddress}!` });
-      setTimeout(() => setSmtpMsg(null), 6000);
-    } catch (err: any) {
-      sounds.playError();
-      setSmtpMsg({ type: 'error', text: err?.message || 'SMTP connection failed. Please verify credentials.' });
-    } finally {
-      setIsTestingEmail(false);
-    }
-  };
 
   // Handle Master OPEN Certificates
   const handleOpenCertificates = async () => {
@@ -385,24 +305,6 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
         >
           <Sliders className="w-4 h-4" />
           <span>Certificate Studio</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            sounds.playWebShoot();
-            setActiveTab('email');
-          }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'email'
-            ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-            : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-            }`}
-        >
-          <Mail className="w-4 h-4" />
-          <span>Email Delivery (Gmail / SMTP)</span>
-          {smtpIsConfigured && (
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          )}
         </button>
       </div>
 
@@ -799,240 +701,6 @@ export const CertificatesDashboard: React.FC<CertificatesDashboardProps> = ({
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          TAB 3: EMAIL DELIVERY & SMTP CONFIGURATION
-          ========================================================================= */}
-      {activeTab === 'email' && (
-        <div className="space-y-6 animate-in fade-in">
-
-          {/* Status and Overview Banner */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 bg-[#0A0F26]/90 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 border ${smtpIsConfigured
-                    ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-                    : 'bg-amber-950/70 border-amber-500/50 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                  }`}>
-                  <span className={`w-2 h-2 rounded-full ${smtpIsConfigured ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`}></span>
-                  <span>{smtpIsConfigured ? 'LIVE SMTP ACTIVE • READY TO DELIVER EMAILS' : 'SMTP NOT CONFIGURED • ACTION REQUIRED'}</span>
-                </span>
-              </div>
-              <h2 className="font-heading text-xl font-black text-white">
-                Direct Email Certificate Dispatch Setup
-              </h2>
-              <p className="text-xs font-mono text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                Connect your Gmail or college email account using a standard 16-character Google App Password. Once saved, student certificate mail requests will automatically land in real inboxes with high-res PNG certificates attached.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#080B18] border border-slate-800 text-xs font-mono space-y-1.5 shrink-0">
-              <div className="text-slate-400">Current Relay: <strong className="text-white">{smtpHost}:{smtpPort}</strong></div>
-              <div className="text-slate-400">Active Sender: <strong className="text-cyan-300">{smtpUser || 'None (Unset)'}</strong></div>
-            </div>
-          </div>
-
-          {/* Feedback banner */}
-          {smtpMsg && (
-            <div className={`p-4 rounded-2xl border text-xs font-mono flex items-center gap-2.5 animate-in fade-in ${smtpMsg.type === 'success'
-                ? 'bg-emerald-950/90 border-emerald-500 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
-                : 'bg-rose-950/90 border-rose-500 text-rose-200 shadow-[0_0_20px_rgba(245,34,69,0.3)]'
-              }`}>
-              {smtpMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> : <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
-              <span>{smtpMsg.text}</span>
-            </div>
-          )}
-
-          {/* Configuration Form Card */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            {/* Left 2 Cols: Form */}
-            <div className="lg:col-span-2 glass-panel p-6 sm:p-8 rounded-3xl border border-[#087CFF]/30 bg-[#090E22]/90 space-y-5">
-              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800">
-                <Key className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-heading font-black text-base text-white uppercase tracking-wider">
-                  Sender Account Credentials
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {/* Sender Email */}
-                <div>
-                  <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2">
-                    Sender Gmail / Email Address <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Mail className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <input
-                      type="email"
-                      value={smtpUser}
-                      onChange={(e) => setSmtpUser(e.target.value)}
-                      placeholder="e.g. yourcollege.event@gmail.com"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-cyan-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                {/* Google App Password */}
-                <div>
-                  <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>Google App Password (16 Characters) <span className="text-rose-400">*</span></span>
-                    <a
-                      href="https://myaccount.google.com/apppasswords"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-sans normal-case"
-                    >
-                      <span>Generate Google App Password</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Key className="w-4 h-4 text-purple-400" />
-                    </div>
-                    <input
-                      type="password"
-                      value={smtpPass}
-                      onChange={(e) => setSmtpPass(e.target.value)}
-                      placeholder="Enter 16-character app password (e.g. abcd efgh ijkl mnop)..."
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-purple-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-400 mt-1 block">
-                    Note: For security, your actual password is encrypted and stored locally in the database.
-                  </span>
-                </div>
-
-                {/* Server Host & Port */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2">
-                      SMTP Host
-                    </label>
-                    <input
-                      type="text"
-                      value={smtpHost}
-                      onChange={(e) => setSmtpHost(e.target.value)}
-                      placeholder="smtp.gmail.com"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-cyan-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2">
-                      SMTP Port (TLS)
-                    </label>
-                    <input
-                      type="number"
-                      value={smtpPort}
-                      onChange={(e) => setSmtpPort(Number(e.target.value))}
-                      placeholder="587"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-cyan-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                {/* Sender Display Name */}
-                <div>
-                  <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-2">
-                    Sender Display Name
-                  </label>
-                  <input
-                    type="text"
-                    value={smtpFrom}
-                    onChange={(e) => setSmtpFrom(e.target.value)}
-                    placeholder="PyRank Arena Mission Control <organizer@domain.edu>"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B18] border border-slate-700 focus:border-cyan-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="button"
-                  disabled={smtpLoading || !smtpUser.trim() || !smtpPass.trim()}
-                  onClick={handleSaveSmtp}
-                  className="px-6 py-3 rounded-xl font-heading font-black text-xs uppercase tracking-wider text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {smtpLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span>SAVE EMAIL CREDENTIALS</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Right 1 Col: Test Email & Guide */}
-            <div className="space-y-6">
-
-              {/* Test Connection Card */}
-              <div className="glass-panel p-6 rounded-3xl border border-slate-800 bg-[#090D1C]/90 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Send className="w-4 h-4 text-emerald-400" />
-                  <h4 className="font-heading font-bold text-white text-xs uppercase tracking-wider">
-                    Verify Email Delivery
-                  </h4>
-                </div>
-                <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
-                  Send a live test dispatch to any email address to verify that your credentials work.
-                </p>
-
-                <div>
-                  <label className="block text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Test Recipient Email
-                  </label>
-                  <input
-                    type="email"
-                    value={testEmailAddress}
-                    onChange={(e) => setTestEmailAddress(e.target.value)}
-                    placeholder="e.g. yourpersonal@gmail.com"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#080B18] border border-slate-700 focus:border-emerald-400 text-xs font-mono text-white placeholder-slate-500 outline-none transition-all"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isTestingEmail || !testEmailAddress.trim()}
-                  onClick={handleTestSmtp}
-                  className="w-full py-2.5 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {isTestingEmail ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>DISPATCHING TEST...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>SEND TEST EMAIL</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Instructions Card */}
-              <div className="p-5 rounded-3xl bg-purple-950/20 border border-purple-500/30 text-xs font-mono text-purple-200 space-y-2.5">
-                <div className="flex items-center gap-1.5 font-bold text-purple-300">
-                  <HelpCircle className="w-4 h-4 text-purple-400" />
-                  <span>How to get a Google App Password:</span>
-                </div>
-                <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
-                  <li>Open your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">Google Account Security</a>.</li>
-                  <li>Enable <strong>2-Step Verification</strong> if not already active.</li>
-                  <li>In the search box at the top, type <strong>"App passwords"</strong>.</li>
-                  <li>Give it an app name like <strong className="text-white">PyRank</strong> and click Create.</li>
-                  <li>Copy the 16-character code (ignore spaces) and paste it into the field above.</li>
-                </ol>
-              </div>
-
-            </div>
-
-          </div>
-
         </div>
       )}
     </div>

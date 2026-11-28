@@ -90,8 +90,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   setActiveTab(item.id);
                 }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-mono text-xs font-semibold tracking-wider transition-all duration-200 ${isActive
-                    ? 'bg-gradient-to-r from-[#8B35FF]/30 to-[#087CFF]/30 text-white border border-[#8B35FF]/60 shadow-[0_0_20px_rgba(139,53,255,0.35)]'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+                  ? 'bg-gradient-to-r from-[#8B35FF]/30 to-[#087CFF]/30 text-white border border-[#8B35FF]/60 shadow-[0_0_20px_rgba(139,53,255,0.35)]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
                   }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-[#00F0FF]' : 'text-slate-400'}`} />
