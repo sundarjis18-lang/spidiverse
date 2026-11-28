@@ -625,10 +625,6 @@ PyRank Sector 616`
                   <span className="text-slate-500">Certificate Type:</span>
                   <span className="text-emerald-400 font-bold">{certType}</span>
                 </div>
-                <div className="flex justify-between border-t border-slate-800/80 pt-1.5 mt-1">
-                  <span className="text-slate-500">Official Sender:</span>
-                  <span className="text-purple-300 font-bold font-mono">251300588077@srcas.ac.in</span>
-                </div>
               </div>
 
               {emailErrorMsg && (

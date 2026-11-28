@@ -112,13 +112,13 @@ def init_db():
     if not cursor.fetchone():
         cursor.execute("INSERT INTO competition_config (key, value) VALUES ('certificates_open', '0')")
 
-    # Default SMTP Sender: 251300588077@srcas.ac.in
+    # Default SMTP Sender
     cursor.execute("SELECT value FROM competition_config WHERE key = 'smtp_user'")
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO competition_config (key, value) VALUES ('smtp_user', '251300588077@srcas.ac.in')")
+        cursor.execute("INSERT INTO competition_config (key, value) VALUES ('smtp_user', '')")
     cursor.execute("SELECT value FROM competition_config WHERE key = 'smtp_from'")
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO competition_config (key, value) VALUES ('smtp_from', 'PyRank Arena <251300588077@srcas.ac.in>')")
+        cursor.execute("INSERT INTO competition_config (key, value) VALUES ('smtp_from', 'PyRank Arena')")
     cursor.execute("SELECT value FROM competition_config WHERE key = 'smtp_host'")
     if not cursor.fetchone():
         cursor.execute("INSERT INTO competition_config (key, value) VALUES ('smtp_host', 'smtp.gmail.com')")
@@ -399,9 +399,9 @@ def get_smtp_config() -> dict:
     return {
         "smtp_host": rows.get("smtp_host") or os.environ.get("SMTP_HOST", "smtp.gmail.com"),
         "smtp_port": int(rows.get("smtp_port") or os.environ.get("SMTP_PORT", "587")),
-        "smtp_user": rows.get("smtp_user") or os.environ.get("SMTP_USER", "251300588077@srcas.ac.in"),
+        "smtp_user": rows.get("smtp_user") or os.environ.get("SMTP_USER", ""),
         "smtp_pass": rows.get("smtp_pass") or os.environ.get("SMTP_PASS", ""),
-        "smtp_from": rows.get("smtp_from") or os.environ.get("SMTP_FROM", "PyRank Arena <251300588077@srcas.ac.in>")
+        "smtp_from": rows.get("smtp_from") or os.environ.get("SMTP_FROM", "PyRank Arena")
     }
 
 def set_smtp_config(host: str, port: int, user: str, password: str, from_email: str = "") -> dict:
